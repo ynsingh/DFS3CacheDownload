@@ -4,6 +4,7 @@ public class ReadObject {
     private int id;
     private String hashedInode;
     private String data;
+    private boolean isInode;
     // method to getId
     public int getId() {return id;}
     // method to put id
@@ -24,8 +25,16 @@ public class ReadObject {
     }
     // method to put Data
     public void setData(String data) {
-       // byte[] decoded = Base64.getDecoder().decode(data.getBytes());
-        this.data = data;
-
+        // byte[] decoded = Base64.getDecoder().decode(data.getBytes());
+        this.data = data;}
+    // method to get isInode
+    public boolean getIsInode() {
+        return isInode;
     }
+    // method to put isInode
+    public void setIsInode(boolean isInode) {
+        this.isInode = isInode;
+    }
+
 }
+

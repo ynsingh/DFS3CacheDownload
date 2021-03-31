@@ -11,11 +11,11 @@ import java.io.IOException;
 
 public class XMLWriter {
     // Write the XML using StAX CURSOR API
-    public static String writer(int tag, String hashInode,byte[] data) throws IOException {
+    public static String writer(int tag, String hashInode,byte[] data, boolean isInode) throws IOException {
         String xmlFileName = hashInode+".xml";
         //List<Query> queryList = new ArrayList<>();
         //queryList.add(new query(attributes to be passed));
-        WriteObject query = new WriteObject(tag,hashInode,data);
+        WriteObject query = new WriteObject(tag,hashInode,data, isInode);
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         try(FileOutputStream fos = new FileOutputStream(xmlFileName)){
             XMLStreamWriter writer = xmlOutputFactory.createXMLStreamWriter(new FileOutputStream(xmlFileName), "UTF-8");
@@ -38,6 +38,12 @@ public class XMLWriter {
             writer.writeCharacters("\n\t\t");
             writer.writeStartElement("Data");
             writer.writeCharacters(query.getData());
+            writer.writeEndElement();
+
+            //write isInode
+            writer.writeCharacters("\n\t\t");
+            writer.writeStartElement("isInode");
+            writer.writeCharacters(String.valueOf(query.getIsInode()));
             writer.writeEndElement();
 
             //write end tag of Service element

@@ -40,7 +40,7 @@ public class InitReplicate {
         byte[] replica = concat(signedHash,encFile);// combine the encfile and signed hash
         // package the replica into xml
         try {
-            String xmlPath = writer(4,hashedInode,replica);
+            String xmlPath = writer(4,hashedInode,replica, false);
             //TODO - retrieve the ip of next node for replication
             Sender.start(xmlPath,"localhost");
             File f = new File(xmlPath);

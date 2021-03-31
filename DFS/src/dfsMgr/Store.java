@@ -54,7 +54,7 @@ public class Store {
         // when the hash matches write the segment data with segment inode as filename
         if (match) {
             writeData(encFile, writepath);//
-            index1(writepath,"root_index.csv");
+            index1(hashedInode,"root_index.csv");
             // initialise replication
             //initReplicate(encFile,hashedInode);
         } else

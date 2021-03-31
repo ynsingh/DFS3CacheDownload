@@ -48,7 +48,7 @@ public class Download{
             String hashedInode = Hash.hashpath("DFS://sidharth@iitk.ac.in"+segmentInode[i]);
             // xml query  with inode.tag for download is 2
             //the data filed is blank hence "Nothing" to avoid null pointer exception
-            String xmlPath = writer(2,hashedInode,"localhost".getBytes());
+            String xmlPath = writer(2,hashedInode,"localhost".getBytes(),false);
             // TODO - retrieve the Ip of the node responsible
             // hand over the xml query to xmlSender
             Sender.start(xmlPath, "localhost");

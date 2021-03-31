@@ -27,19 +27,19 @@ public class Receiver {
             try {
                 socket = serverSocket.accept();
             } catch (IOException ex) {
-                System.out.println("Can't accept client connection. ");
+                System.out.println("Can't accept client connection.");
             }
             if(socket.isConnected()){
                 try {
                     in = socket.getInputStream();
                 } catch (IOException ex) {
-                    System.out.println("Can't get socket input stream. ");
+                    System.out.println("Can't get socket input stream.");
                 }
                 String fileName = getName();
                 try {
                     out = new FileOutputStream(fileName);
                 } catch (FileNotFoundException ex) {
-                    System.out.println("File not found. ");
+                    System.out.println("File not found.");
                 }
 
                 byte[] bytes = new byte[16*1024];

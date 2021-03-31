@@ -69,7 +69,7 @@ public class Replicate {
         //get the file ready to transmit after adding signed hash into the segment
         byte[] fileTx = concat(signedHash,encFile);// combine segment data and signed hash
         // Write the XML query. Tag for upload is 1
-        String xmlPath = writer(1,hashedInode,fileTx);
+        String xmlPath = writer(1,hashedInode,fileTx, false);
         // handover the xml query to xmlSender (token for upload is 1)
         // TODO - query the dht and get the IP from B4
         File f;

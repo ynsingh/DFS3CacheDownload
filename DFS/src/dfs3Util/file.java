@@ -112,7 +112,7 @@ public class file {
     public static void index1(String indexInode,String indexName){
         HashMap<String, String> index = new HashMap<>();
         String indexPath = System.getProperty("user.dir") +
-                System.getProperty("file.separator") + indexInode;
+                System.getProperty("file.separator") + "b4dfs"+System.getProperty("file.separator")+ "dfsSrvr"+System.getProperty("file.separator")+indexInode;
         // Put elements to the map
         index.put(indexInode, indexPath);// Put elements to the map
         /* Write CSV */
@@ -241,6 +241,31 @@ public class file {
         // Put elements to the map
         index.put(inode, hashOfFile);// Put elements to the map
         String fileName = "uploadIndex.csv";
+        /* Write CSV */
+        try {
+            String uploadPath = System.getProperty("user.dir") +
+                    System.getProperty("file.separator") + fileName;
+            // true is for appending and false is for over writing
+            FileWriter writer = new FileWriter(uploadPath, true);
+            Set set = index.entrySet();
+            // Get an iterator
+            for (Object o : set) {
+                Map.Entry firstEntry = (Map.Entry) o;
+                writer.write(firstEntry.getKey().toString());
+                writer.write(",");//Explore how to write key and value in different fields
+                writer.write(firstEntry.getValue().toString());
+                writer.write("\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void inodeIndex(String inode, String hashOfInode){
+        HashMap<String,String> index = new HashMap<>();
+        // Put elements to the map
+        index.put(inode, hashOfInode);// Put elements to the map
+        String fileName = "uploadedInodes.csv";
         /* Write CSV */
         try {
             String uploadPath = System.getProperty("user.dir") +
