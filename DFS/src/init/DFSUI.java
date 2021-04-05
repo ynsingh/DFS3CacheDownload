@@ -1,28 +1,25 @@
 package init;
-/*
+
 import dfs3test.communication.Receiver;
-import ReplicaMgt.Monitor;
+import dfsMgr.ListFiles;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import static dfsMgr.Upload.start;
 
-public class DFSUI extends JFrame
-{
+public class DFSUI extends JFrame {
     private final JMenuBar menu;
     private final JMenu m1;
-    private JMenuItem View,Upload,Download,Delete,Exit,Modify;
-    private JButton btnView,btnUpload,btnDelete,btnDownload,btnModify,btnExit;
+    private JMenuItem View, Upload, Download, Delete, Exit, Modify;
+    private JButton btnView, btnUpload, btnDelete, btnDownload, btnModify, btnExit;
     private JPanel pMain, pCenter;
     private JTextArea tac;
     private JLabel lbllogo;
 
-    public DFSUI()
-    {
+    public DFSUI() {
         //menu bar and menu item initialization
         menu = new JMenuBar();
         m1 = new JMenu("Options");
@@ -60,7 +57,7 @@ public class DFSUI extends JFrame
         pMain = new JPanel();
         pCenter = new JPanel();
         // lbllogo change here to display a logo
-        lbllogo = new JLabel(new ImageIcon("//G:/MFCfinish.gif"),JLabel.CENTER);
+        lbllogo = new JLabel(new ImageIcon("//G:/MFCfinish.gif"), JLabel.CENTER);
         //add menu items to Options menu
         m1.add(View);
         m1.add(Upload);
@@ -78,21 +75,21 @@ public class DFSUI extends JFrame
         pMain.add(btnModify);
         pMain.add(btnExit);
         // set layout for the panel main change here for background, layout text displayed etc
-        pMain.setLayout(new BoxLayout(pMain,BoxLayout.Y_AXIS));
+        pMain.setLayout(new BoxLayout(pMain, BoxLayout.Y_AXIS));
         pMain.setBorder(BorderFactory.createTitledBorder("OPTIONS"));
-        pMain.setLayout(new GridLayout(6,1));
+        pMain.setLayout(new GridLayout(6, 1));
         pMain.setBackground(Color.white);
         // set layout for the panel center
-        pCenter.setLayout(new BoxLayout(pMain,BoxLayout.Y_AXIS));
-        pCenter.setLayout(new GridLayout(1,1));
+        pCenter.setLayout(new BoxLayout(pMain, BoxLayout.Y_AXIS));
+        pCenter.setLayout(new GridLayout(1, 1));
         pCenter.add(lbllogo);
         // position of the panel is controlled from here
-        this.getContentPane().add(pMain,"East");
-        this.getContentPane().add(pCenter,"Center");
+        this.getContentPane().add(pMain, "East");
+        this.getContentPane().add(pCenter, "Center");
         // size of the window containing everything above is specified here
-        this.setSize(500,400);
+        this.setSize(500, 400);
         this.setResizable(false);
-        this.setLocation(450,200);
+        this.setLocation(450, 200);
         this.setTitle("DFS Drive");
         this.show();
 // The following sections list all the action listeners in order
@@ -101,11 +98,11 @@ public class DFSUI extends JFrame
         btnUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                Upload.start(childpath);//reference to Upload.start()
+                start();//reference to Upload.start()
             } catch (IOException | GeneralSecurityException ex) {
                 ex.printStackTrace();
             }
-    });
+        });
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
         btnDownload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
@@ -125,44 +122,17 @@ public class DFSUI extends JFrame
             }
         });
     }
-// Starts the DFS module
-public static void main(String args[])
+
+
+    // Starts the DFS module
+    /*public static void main(String args[])
     {
         // creates new GUI object and runs the GUI for DFS
-        File f;
-        f = new File("DFSworkspace");
-        // create directory DFSworkspace
-        if(f.exists()||f.isDirectory()){
-        }else{
-            String path = System.getProperty("user.dir") +
-                    System.getProperty("file.separator")+"DFSworkspace";
-            new File(path).mkdirs();
-        }
         DFSUI UI = new DFSUI();
-        Thread rx = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Receiver.start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        rx.start();
-        Thread monitor = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Monitor.statusReport();
-                    System.out.println("Monitor started");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-        monitor.start();
-    }
+        try {
+            Receiver.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }*/
 }
-*/

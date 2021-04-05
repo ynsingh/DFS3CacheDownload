@@ -49,6 +49,7 @@ public class DFSConfig implements Serializable {
     public static void update(long fileSize) throws IOException {
         config.setCloudOccupied(fileSize);
         config.setCloudAvlb(config.cloudOccupied);
+        config.setCacheOccupied();
         try {
             FileOutputStream fos = new FileOutputStream(configFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -110,18 +111,18 @@ public class DFSConfig implements Serializable {
      */
     public static long getCloudAvlb() throws IOException{
         try {
-        FileInputStream fis= new FileInputStream(configFile);
-        ObjectInputStream ois = new ObjectInputStream(fis);
+            FileInputStream fis= new FileInputStream(configFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
 
-        config = (DFSConfig)ois.readObject();
-        ois.close();
-    } catch (FileNotFoundException e) {
-        e.printStackTrace();
-    } catch (IOException e) {
-        e.printStackTrace();
-    } catch (ClassNotFoundException e) {
-        e.printStackTrace();
-    }
+            config = (DFSConfig)ois.readObject();
+            ois.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         return config.cloudAvlb;
     }
 
@@ -134,12 +135,30 @@ public class DFSConfig implements Serializable {
     long cloudAuth;
     long cloudOccupied;
     long cloudAvlb;
-    long localCacheSize = (long) (0.1*cloudAuth);
-    long cacheOccupied=0;
+    long localCacheSize;
+    public static long getLocalCacheSize() {
+        try {
+            FileInputStream fis= new FileInputStream(configFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            config = (DFSConfig)ois.readObject();
+            ois.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return config.localCacheSize;
+    }
+
+
+    static long cacheOccupied=0;
 
     String dfsDir;
     String dfsSrvr;
-    String dfsCache;
+    public static String dfsCache=System.getProperty("user.dir") +System.getProperty("file.separator")+
+            "b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator");
     static String configFile;
 
     private DFSConfig(){
@@ -196,6 +215,7 @@ public class DFSConfig implements Serializable {
                 }
                 config.cloudAuth=config.localOffered/2;
                 config.cloudAvlb=config.cloudAuth;
+                config.localCacheSize=(long)config.cloudAuth/10;
 
                 break;
             }
@@ -297,30 +317,47 @@ public class DFSConfig implements Serializable {
     /**
      * @return the cacheOccupied
      */
-    public long getCacheOccupied() {
-        return cacheOccupied;
+    public static long getCacheOccupied() {
+        try {
+            FileInputStream fis= new FileInputStream(configFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            config = (DFSConfig)ois.readObject();
+            ois.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return config.cacheOccupied;
     }
 
-    /**
-     * @param cacheOccupied the cacheOccupied to set
-     */
-    public void setCacheOccupied(long cacheOccupied) {
-        this.cacheOccupied = cacheOccupied;
+    public static void setCacheOccupied() {
+
+        File cacheDir = new File(config.dfsCache);
+        File[] files = cacheDir.listFiles();
+        long length = 0;
+        int count = files.length;
+
+        // loop for traversing the directory
+        for (int i = 0; i < count; i++) {
+            length += files[i].length();
+        }
+        config.cacheOccupied=length;
+        /*try {
+            FileOutputStream fos = new FileOutputStream(configFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(config);
+            oos.close();
+            System.out.println("DFS Cache Size updated successfully");
+        } catch(Exception e) {
+            e.printStackTrace();
+
+        } */
+        System.out.println("Cache Size Updated.."+ config.cacheOccupied);
     }
 
-    /**
-     * @return the dfsCache
-     */
-    public String getDfsCache() {
-        return dfsCache;
-    }
-
-    /**
-     * @param dfsCache the dfsCache to set
-     */
-    public void setDfsCache(String dfsCache) {
-        this.dfsCache = dfsCache;
-    }
 
     void regInit()
     {

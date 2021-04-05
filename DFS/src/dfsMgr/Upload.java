@@ -44,21 +44,23 @@ public class Upload {
      */
 
     // get path of the selected file
-    static String path = "C:\\Users\\Dell\\desktop\\test\\deepfake.jpg";
-    static Path path1 = Paths.get(path);
-    static String fileName = path1.getFileName().toString();
+    static String path;
+    static Path path1;
+    static String fileName;
     public static String fileURI;
     public static Boolean fBit= Boolean.TRUE;
-    static String fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-    static {
+    static String fileSuffix;
+    static long fileSize;
 
-        fileURI = DFSConfig.getRootinode() + fileName+ "@@" + fileSuffix ;
-    }
-
-    static long fileSize = Util.checkFileSize(path);
     public static void start() throws NullPointerException, IOException,
             GeneralSecurityException {
 
+        path=readpath();
+        path1= Paths.get(path);
+        fileName = path1.getFileName().toString();
+        fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        fileURI = DFSConfig.getRootinode() + fileName+ "@@" + fileSuffix ;
+        fileSize = Util.checkFileSize(path);
         //check whether adequate space is available in the user cloud
         try {
             long cloudAvlb = DFSConfig.getCloudAvlb();
