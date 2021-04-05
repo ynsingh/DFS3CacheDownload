@@ -215,7 +215,8 @@ public class DFSConfig implements Serializable {
                 }
                 config.cloudAuth=config.localOffered/2;
                 config.cloudAvlb=config.cloudAuth;
-                config.localCacheSize=(long)config.cloudAuth/10;
+                config.localCacheSize=config.cloudAuth/10;
+                setCacheOccupied();
 
                 break;
             }
@@ -373,6 +374,8 @@ public class DFSConfig implements Serializable {
             System.out.println("Your authorized cloud space is: "+ (config.getCloudAuth()/(1024*1024*1024))+"GB");
             System.out.println("You have already used: "+ (config.getCloudOccupied()/(1024*1024))+"MB cloud space");
             System.out.println("Cloud space available is:" + (config.getCloudAvlb()/(1024*1024*1024))+"GB");
+            setCacheOccupied();
+            System.out.println("Cache occupied is: "+config.cacheOccupied);
 
             ois.close();
         } catch (FileNotFoundException e) {

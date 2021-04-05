@@ -30,8 +30,8 @@ public class CacheScheduler {
         public void run() {
             Path cachePath= Paths.get(DFSConfig.dfsCache);
             try {
-                int i = CacheOldDelete.oldDelete(cachePath,15);
-                System.out.println(i+" Files older than 15 days deleted from Cache");
+                //int i = CacheOldDelete.oldDelete(cachePath,15);
+                //System.out.println(i+" Files older than 15 days deleted from Cache");
                 int j = CacheSizeDelete.sizedelete(cachePath, DFSConfig.getLocalCacheSize());
                 System.out.println(j+" Older files exceeding cache size deleted from Cache");
             } catch (IOException | InterruptedException e) {
