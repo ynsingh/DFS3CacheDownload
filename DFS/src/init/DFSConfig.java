@@ -44,6 +44,11 @@ public class DFSConfig implements Serializable {
     public long localfree;
     public long localOffered;
     public long localOccupied;
+
+    public static String getMailID() {
+        return mailID;
+    }
+
     public static String mailID;
 
     public static void update(long fileSize) throws IOException {

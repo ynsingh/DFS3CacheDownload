@@ -3,6 +3,7 @@ package init;
 import dfs3test.communication.Receiver;
 import java.io.*;
 import java.security.GeneralSecurityException;
+import UFS1.*;
 public class DFSInit {
 
     public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException {
@@ -20,9 +21,10 @@ public class DFSInit {
             }
         });
         rx.start();
-        dfsCacheMgr.CacheScheduler.scheduler();
-        DFSUI UI = new DFSUI();
+        //dfsCacheMgr.CacheScheduler.scheduler();
+        //DFSUI UI = new DFSUI();
         //WatchDir.startWatchDir();
+        UFS1.UFSinit.initUFS();
     }
 
 }
