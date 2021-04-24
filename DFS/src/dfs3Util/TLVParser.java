@@ -30,7 +30,7 @@ public class TLVParser {
     public static byte[] startParsing(byte[] frame,int type) {
 
         //parse the combined byte array as a TLVParser object
-        TLVParser parsed = parse(frame, 0);
+        TLVParser parsed = TLVParser.parse(frame, 0);
         // get the data back after parsing
         return parsed.getBytesValue(type);
     }

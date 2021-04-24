@@ -1,11 +1,16 @@
 package UFS1;
+import dfs3Util.TLVParser;
 import dfs3test.communication.Sender;
+import dfs3test.encrypt.GenerateKeys;
 import dfs3test.encrypt.Hash;
 import init.DFSConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 
 import static dfs3test.encrypt.Encrypt.concat;
 import static dfs3test.encrypt.Hash.hashgenerator;
@@ -27,7 +32,7 @@ public class UFSinit {
         }
     }
 
-    public static void initUFS() throws IOException, NoSuchAlgorithmException {
+    public static void initUFS() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
         //Email ID is extracted from dsf configuration file
         System.out.println("Email ID registered for UFS: "+ mailID);
         //List of uploaded public content shall be listed at hash of mailID
@@ -57,9 +62,15 @@ public class UFSinit {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //Upload the UFS directory
         byte[] inodeData= dfs3Util.file.readdata(ufsInodeFile);
         String hashofinode = hashgenerator(inodeData);
-        byte[] fileTx = concat(hashofinode.getBytes(), inodeData);
+        byte[] inodeData1 = TLVParser.startFraming(inodeData, 1);
+        //insert tag to identify the segment as already sequenced
+        byte[] inodeData2 = TLVParser.startFraming(inodeData1, 4);
+        //Sign the hash
+        byte[] signedHash = GenerateKeys.signHash(hashOfmailID.getBytes());
+        byte[] fileTx = concat(signedHash, inodeData2);
         String xmlPath = writer(1, hashOfmailID, fileTx, false);
         // handover the xml query to xmlSender (token for upload is 1)
         Sender.start(xmlPath, "localhost");

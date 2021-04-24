@@ -1,8 +1,12 @@
-package dfsMgr;
+package UFS1;
 
 import dfs3Util.TLVParser;
 import dfs3test.communication.Sender;
-import dfs3test.encrypt.*;
+import dfs3test.encrypt.Encrypt;
+import dfs3test.encrypt.GenerateKeys;
+import dfs3test.encrypt.Hash;
+import dfs3test.xmlHandler.InodeWriter;
+import dfsMgr.Util;
 import init.DFSConfig;
 
 import java.io.*;
@@ -15,24 +19,26 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import dfs3test.xmlHandler.*;
 
 import static dfs3Util.file.*;
+import static dfs3Util.file.readdata;
 import static dfs3test.encrypt.Encrypt.concat;
 import static dfs3test.encrypt.Hash.hashgenerator;
 import static dfs3test.xmlHandler.XMLWriter.writer;
 
-/**
- * Class responsible for uploading a File into DFS.
- * This class gets the file selected by user and uploads it
- * into the DFS using DHT
- * <p><b>Functions:</b> At the user end of DFS</p>
- * <b>Note:</b> Change this file to change functionality
- * related to the upload function
- * @author <a href="https://t.me/sidharthiitk">Sidharth Patra</a>
- * @since 13th Feb 2020
- */
-public class Upload {
+public class UFSUpload {
+
+    /**
+     * Class responsible for uploading a File into DFS.
+     * This class gets the file selected by user and uploads it
+     * into the DFS using DHT
+     * <p><b>Functions:</b> At the user end of DFS</p>
+     * <b>Note:</b> Change this file to change functionality
+     * related to the upload function
+     * @author <a href="https://t.me/sidharthiitk">Sidharth Patra</a>
+     * @since 13th Feb 2020
+     */
+
     /**
      * Starts the upload process
      * <p> This method executes all the functions related to uploading
@@ -52,126 +58,111 @@ public class Upload {
     static String fileSuffix;
     static long fileSize;
 
-    public static void start(boolean isDFS) throws NullPointerException, IOException,
+    public static void start() throws NullPointerException, IOException,
             GeneralSecurityException {
 
         path=readpath();
         path1= Paths.get(path);
         fileName = path1.getFileName().toString();
         fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-        fileURI = DFSConfig.getRootinode() + fileName+ "@@" + fileSuffix ;
+        fileURI = fileName+ "@@" + fileSuffix ;
         fileSize = Util.checkFileSize(path);
-        //check whether adequate space is available in the user cloud
+
         try {
-            long cloudAvlb = DFSConfig.getCloudAvlb();
-            if (cloudAvlb > fileSize) {
-                //System.out.println("Cloud space available is:" + (cloudAvlb / (1024 * 1024 * 1024)) + "GB");
-                System.out.println("File Size is: " + (fileSize / (1024 * 1024)) + "MB");
-                System.out.println("File can be uploaded");
-                //reading file using FileChannel and ByteBuffer
-                RandomAccessFile randomAccessFile = new RandomAccessFile(path, "r");
-                ByteBuffer encData;
-                try (FileChannel channel = randomAccessFile.getChannel()) {
-                    ByteBuffer byteBuffer = ByteBuffer.allocate((int) channel.size());//alocate new ByteBuffer of size of file
-                    //byteBuffer.put(bytes);
-                    long bufferSize = channel.size();
-                    ByteBuffer buff = ByteBuffer.allocate((int) bufferSize);
-                    channel.read(buff);
-                    buff.flip();
-                    byte[] plainData = buff.array();
-                    byteBuffer.flip();
-                    //channel.write(byteBuffer);
-                    randomAccessFile.close();
-                    channel.close();
-                    //Encrypt the file and key and combine both using TLV framing
-                    byte[] filePlusKey = Encrypt.startEnc(plainData);
-                    System.out.println("file encrypted successfully!");
-                    encData = ByteBuffer.wrap(filePlusKey);
-                    //send the file for segmentation
-                    Segmentation.start(encData, path);
-                    System.out.println("file segmented successfully!");
-                    //write inode for the file being uploaded
-                    InodeWriter.writeInode(Segmentation.nameOfFile, fileSize, Segmentation.index);
-                }
-                //Retrieve the segments and upload them one by one
-                String splitFile = System.getProperty("user.dir") +
-                        System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + Segmentation.nameOfFile +"_Inode.csv";
-                String[] segmentInode = csvreader(splitFile, path);
-                for (int i = 0; i < segmentInode.length && !(segmentInode[i] == null); i++) {
-                    //System.out.println(segmentInode[i]+" being uploaded");
-                    byte[] segmentData = readdata(segmentInode[i]);
-                    //Delete the segments once the data is read into byte array
-                    File f=new File(segmentInode[i]);
-                    //f.delete();
-                    //extract segment name from the inode
-                    String segmentName = f.getName();
-                    //insert sequence number into the segment
-                    byte[] segmentData1 = TLVParser.startFraming(segmentData, i + 1);
-                    //insert tag to identify the segment as already sequenced
-                    byte[] segmentData2 = TLVParser.startFraming(segmentData1, 4);
-                    //Generate the inode of segment and compute the hash of the same
-                    String hashedInode = Hash.hashpath(DFSConfig.getRootinode() + segmentName);
-                    System.out.println("Segment URL being uploaded: "+DFSConfig.getRootinode() + segmentName);
-                    System.out.println("Hash of segment URL: "+hashedInode);
-                    //compute the hash of segment
-                    String hashofSegment = hashgenerator(segmentData2);
-                    //Sign the hash
-                    byte[] signedHash = GenerateKeys.signHash(hashofSegment.getBytes());
-                    //get the file ready to transmit after adding signed hash into the segment
-                    byte[] fileTx = concat(signedHash, segmentData2);// combine the file,key and hash of Inode
-                    // Write the XML query. Tag for upload is 1
-                    String xmlPath = writer(1, hashedInode, fileTx, false);
-                    // handover the xml query to xmlSender (token for upload is 1)
-                    // TODO - query the dht and get the IP
-                    Sender.start(xmlPath, "localhost");
-                    System.out.println("Uploading Segment No " + (i + 1));
-                }
-                //Now uploading the inode of the file
-                String inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ Segmentation.nameOfFile + "_Inode.xml";
-                String inodeFileName=Segmentation.nameOfFile + "_Inode.xml";
-                //System.out.println(inode + " inode being uploaded");
-                byte[] fileInodeData = readdata(inode);
+            //reading file using FileChannel and ByteBuffer
+            RandomAccessFile randomAccessFile = new RandomAccessFile(path, "r");
+            ByteBuffer fileData;
+            try (FileChannel channel = randomAccessFile.getChannel()) {
+                ByteBuffer byteBuffer = ByteBuffer.allocate((int) channel.size());//alocate new ByteBuffer of size of file
+                //byteBuffer.put(bytes);
+                long bufferSize = channel.size();
+                ByteBuffer buff = ByteBuffer.allocate((int) bufferSize);
+                channel.read(buff);
+                buff.flip();
+                byte[] plainData = buff.array();
+                byteBuffer.flip();
+                //channel.write(byteBuffer);
+                randomAccessFile.close();
+                channel.close();
+                fileData = ByteBuffer.wrap(plainData);
+                //send the file for segmentation
+                UFSSegmentation.start(fileData, path);
+                System.out.println("file segmented successfully!");
+                //write inode for the file being uploaded
+                InodeWriter.writeInode(UFSSegmentation.nameOfFile, fileSize, UFSSegmentation.index);
+            }
+            //Retrieve the segments and upload them one by one
+            String splitFile = System.getProperty("user.dir") +
+                    System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + UFSSegmentation.nameOfFile +"_Inode.csv";
+            String[] segmentInode = csvreader(splitFile, path);
+            for (int i = 0; i < segmentInode.length && !(segmentInode[i] == null); i++) {
+                //System.out.println(segmentInode[i]+" being uploaded");
+                byte[] segmentData = readdata(segmentInode[i]);
                 //Delete the segments once the data is read into byte array
-                File f;
-                f = new File(inode);
+                File f=new File(segmentInode[i]);
                 //f.delete();
+                //extract segment name from the inode
+                String segmentName = f.getName();
                 //insert sequence number into the segment
-                byte[] inodeData1 = TLVParser.startFraming(fileInodeData,  1);
+                byte[] segmentData1 = TLVParser.startFraming(segmentData, i + 1);
                 //insert tag to identify the segment as already sequenced
-                byte[] inodeData2 = TLVParser.startFraming(inodeData1, 4);
+                byte[] segmentData2 = TLVParser.startFraming(segmentData1, 4);
                 //Generate the inode of segment and compute the hash of the same
-                String hashedInodeInode = Hash.hashpath(DFSConfig.getRootinode()+Segmentation.nameOfFile + "_Inode.xml");
+                String hashedInode = Hash.hashpath(DFSConfig.getRootinode() + segmentName);
+                System.out.println("Segment URL being uploaded: "+DFSConfig.getRootinode() + segmentName);
+                System.out.println("Hash of segment URL: "+hashedInode);
                 //compute the hash of segment
-                String hashofInode = hashgenerator(inodeData2);
+                String hashofSegment = hashgenerator(segmentData2);
                 //Sign the hash
-                byte[] signedHashInode = GenerateKeys.signHash(hashofInode.getBytes());
+                byte[] signedHash = GenerateKeys.signHash(hashofSegment.getBytes());
                 //get the file ready to transmit after adding signed hash into the segment
-                byte[] inodeTx = concat(signedHashInode, inodeData2);// combine the file,key and hash of Inode
+                byte[] fileTx = concat(signedHash, segmentData2);// combine the file,key and hash of Inode
                 // Write the XML query. Tag for upload is 1
-                String inodeXmlPath = writer(1, hashedInodeInode, inodeTx, true);
+                String xmlPath = writer(1, hashedInode, fileTx, false);
                 // handover the xml query to xmlSender (token for upload is 1)
                 // TODO - query the dht and get the IP
-                Sender.start(inodeXmlPath, "localhost");
-                System.out.println(DFSConfig.getRootinode()+Segmentation.nameOfFile + "_Inode.xml");
-                System.out.println("Uploading File inode..");
-                System.out.println(hashedInodeInode);
-
-                System.out.println("Upload completed");
-                // compute hash of the combination of encrypted Key and data of original file
-                String hashofFile = hashgenerator(encData.array());
-                // index the hash against the original inode for comparing after
-                // downloading the file from cloud. DbaseAPI.index
-                index(fileURI, hashofFile);
-                inodeIndex(inodeFileName, hashofInode);
-                //System.out.println("hash of inode being uploaded: "+hashedInodeInode);
-                DFSConfig.update(fileSize);
+                Sender.start(xmlPath, "localhost");
+                System.out.println("Uploading Segment No " + (i + 1));
             }
-            else {
+            //Now uploading the inode of the file
+            String inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ UFSSegmentation.nameOfFile + "_Inode.xml";
+            String inodeFileName= UFSSegmentation.nameOfFile + "_Inode.xml";
+            //System.out.println(inode + " inode being uploaded");
+            byte[] fileInodeData = readdata(inode);
+            //Delete the segments once the data is read into byte array
+            File f;
+            f = new File(inode);
+            //f.delete();
+            //insert sequence number into the segment
+            byte[] inodeData1 = TLVParser.startFraming(fileInodeData,  1);
+            //insert tag to identify the segment as already sequenced
+            byte[] inodeData2 = TLVParser.startFraming(inodeData1, 4);
+            //Generate the inode of segment and compute the hash of the same
+            String hashedInodeInode = Hash.hashpath(UFSSegmentation.nameOfFile + "_Inode.xml");
+            //compute the hash of segment
+            String hashofInode = hashgenerator(inodeData2);
+            //Sign the hash
+            byte[] signedHashInode = GenerateKeys.signHash(hashofInode.getBytes());
+            //get the file ready to transmit after adding signed hash into the segment
+            byte[] inodeTx = concat(signedHashInode, inodeData2);// combine the file,key and hash of Inode
+            // Write the XML query. Tag for upload is 1
+            String inodeXmlPath = writer(1, hashedInodeInode, inodeTx, true);
+            // handover the xml query to xmlSender (token for upload is 1)
+            // TODO - query the dht and get the IP
+            Sender.start(inodeXmlPath, "localhost");
+            System.out.println("Uploading File inode..");
+            System.out.println(hashedInodeInode);
 
-                System.out.println("Cloud space available is:" + cloudAvlb);
-                System.out.println("File Size is: " + fileSize);
-                System.out.println("Cloud space available is not sufficient");
-            }
+            System.out.println("Upload completed");
+            // compute hash of the combination of encrypted Key and data of original file
+            String hashofFile = hashgenerator(fileData.array());
+            // index the hash against the original inode for comparing after
+            // downloading the file from cloud. DbaseAPI.index
+            index(fileURI, hashofFile);
+            inodeIndex(inodeFileName, hashofInode);
+            //System.out.println("hash of inode being uploaded: "+hashedInodeInode);
+            //DFSConfig.update(fileSize);
+
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -179,7 +170,7 @@ public class Upload {
 
     }//end of start
 }
-class Segmentation {
+class UFSSegmentation {
 
     // the variable that get the current directory
     private static final String dir = System.getProperty("user.dir") +
@@ -217,7 +208,7 @@ class Segmentation {
         File f;
         f = new File(inode);
         // get name of the file containing file plus key from the disk
-        nameOfFile = f.getName()+"@@"+Upload.fileSuffix;
+        nameOfFile = f.getName()+"@@"+ UFSUpload.fileSuffix;
         // get the inode
         iNode = inode;
         // enforce condition for the chunk size to be more than 0
@@ -346,3 +337,4 @@ class Segmentation {
 
 }
 //end of class
+

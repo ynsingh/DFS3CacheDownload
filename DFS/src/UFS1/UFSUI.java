@@ -1,4 +1,4 @@
-package init;
+package UFS1;
 
 import dfsMgr.ListFiles;
 
@@ -9,7 +9,7 @@ import java.security.GeneralSecurityException;
 
 import static dfsMgr.Upload.start;
 
-public class DFSUI extends JFrame {
+public class UFSUI extends JFrame {
     private final JMenuBar menu;
     private final JMenu m1;
     private JMenuItem View, Upload, Download, Delete, Exit, Modify;
@@ -18,12 +18,12 @@ public class DFSUI extends JFrame {
     private JTextArea tac;
     private JLabel lbllogo;
 
-    public DFSUI() {
+    public UFSUI() {
         //menu bar and menu item initialization
         menu = new JMenuBar();
         m1 = new JMenu("Options");
 
-        View = new JMenuItem("My Drive");
+        View = new JMenuItem("My UFS Drive");
         Upload = new JMenuItem("Upload");
         Download = new JMenuItem("Download");
         Delete = new JMenuItem("Delete");
@@ -34,23 +34,23 @@ public class DFSUI extends JFrame {
         // The first line initialises the button with text as displayed against
         // each. the second line shows the tip related to the button
 
-        btnView = new JButton("My Drive");
-        btnView.setToolTipText("Show the contents in Drive");
+        btnView = new JButton("My UFS");
+        btnView.setToolTipText("Show the contents in UFS");
 
         btnUpload = new JButton("Upload");
-        btnUpload.setToolTipText("Upload to Drive");
+        btnUpload.setToolTipText("Upload to UFS");
 
         btnDelete = new JButton("DELETE");
-        btnDelete.setToolTipText("Delete from Drive");
+        btnDelete.setToolTipText("Delete from UFS");
 
         btnDownload = new JButton("Download");
-        btnDownload.setToolTipText("Download from Drive");
+        btnDownload.setToolTipText("Download from UFS");
 
         btnModify = new JButton("Modify");
-        btnModify.setToolTipText("Modify the contents in Drive");
+        btnModify.setToolTipText("Modify the contents in UFS");
 
         btnExit = new JButton("Exit");
-        btnExit.setToolTipText("Exit from DFS");
+        btnExit.setToolTipText("Exit from UFS");
         //initialization of panel
         // change these to add or remove any of the panel
         pMain = new JPanel();
@@ -89,7 +89,7 @@ public class DFSUI extends JFrame {
         this.setSize(500, 400);
         this.setResizable(false);
         this.setLocation(450, 200);
-        this.setTitle("DFS Drive");
+        this.setTitle("UFS");
         this.show();
 // The following sections list all the action listeners in order
 // change here to modify what a button does
@@ -97,7 +97,7 @@ public class DFSUI extends JFrame {
         btnUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                start(true);//reference to Upload.start()
+                start(false);//reference to Upload.start()
             } catch (IOException | GeneralSecurityException ex) {
                 ex.printStackTrace();
             }

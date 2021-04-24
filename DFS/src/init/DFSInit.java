@@ -22,9 +22,9 @@ public class DFSInit {
         });
         rx.start();
         //dfsCacheMgr.CacheScheduler.scheduler();
-        //DFSUI UI = new DFSUI();
+        //DFSUI DUI = new DFSUI();
         //WatchDir.startWatchDir();
-        UFS1.UFSinit.initUFS();
+        UFSUI UUI = new UFSUI();
     }
 
 }
