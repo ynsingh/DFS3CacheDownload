@@ -92,7 +92,7 @@ public class Download{
     public static void postDownload(byte[] completefile) throws GeneralSecurityException, IOException {
 
         // compare the hash of completefile with the original filepluskey
-        boolean hashMatch = comparehash(fileName,completefile);
+        boolean hashMatch = comparehash(fileName,completefile, true);
         // retrieve data, decrypt data after decrypting key
         // write the file on decrypting data
         if(hashMatch){

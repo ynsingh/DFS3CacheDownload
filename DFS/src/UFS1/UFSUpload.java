@@ -2,7 +2,6 @@ package UFS1;
 
 import dfs3Util.TLVParser;
 import dfs3test.communication.Sender;
-import dfs3test.encrypt.Encrypt;
 import dfs3test.encrypt.GenerateKeys;
 import dfs3test.encrypt.Hash;
 import dfs3test.xmlHandler.InodeWriter;
@@ -89,7 +88,7 @@ public class UFSUpload {
                 UFSSegmentation.start(fileData, path);
                 System.out.println("file segmented successfully!");
                 //write inode for the file being uploaded
-                InodeWriter.writeInode(UFSSegmentation.nameOfFile, fileSize, UFSSegmentation.index);
+                //InodeWriter.writeInode(UFSSegmentation.nameOfFile, fileSize, UFSSegmentation.index, isDFS);
             }
             //Retrieve the segments and upload them one by one
             String splitFile = System.getProperty("user.dir") +
@@ -158,7 +157,7 @@ public class UFSUpload {
             String hashofFile = hashgenerator(fileData.array());
             // index the hash against the original inode for comparing after
             // downloading the file from cloud. DbaseAPI.index
-            index(fileURI, hashofFile);
+            //index(fileURI, hashofFile, isDFS);
             inodeIndex(inodeFileName, hashofInode);
             //System.out.println("hash of inode being uploaded: "+hashedInodeInode);
             //DFSConfig.update(fileSize);

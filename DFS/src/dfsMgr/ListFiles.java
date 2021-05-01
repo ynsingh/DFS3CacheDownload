@@ -1,12 +1,12 @@
 package dfsMgr;
 
-import dfsMgr.Delete;
-import dfsMgr.Download;
+import init.DFSConfig;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -34,12 +34,19 @@ public class ListFiles {
      * download and delete buttons.
      * @throws IOException for input output exception
      * @throws IllegalArgumentException if illegal argument such as null are passed
+     * @param isDFS
      */
-    public static void start() throws IllegalArgumentException, IOException {
+    public static void start(boolean isDFS) throws IllegalArgumentException, IOException {
 
-        String fileName = "uploaded.csv";
+        String fileName1 = "DFSuploaded.csv";
+        String fileName2 = "UFSuploaded.csv";
+        TableModel tableModel = null;
         //Table related tasks
-        TableModel tableModel = array2table(csv2array(fileName));
+        if(isDFS)
+            tableModel = array2table(csv2array(fileName1, isDFS));
+        else
+            tableModel = array2table(csv2array(fileName2, isDFS));
+
         JTable table = new JTable(tableModel);
         Font font = new Font("Verdana", Font.PLAIN, 12);
         table.setFont(font);
@@ -86,7 +93,7 @@ public class ListFiles {
                         + fileSelected + "\n");
                 //call the download class once user clicks on download
                 try {
-                    Dfs3Download.start(fileSelected);
+                    Dfs3Download.start(fileSelected, isDFS);
                 } catch (IOException | GeneralSecurityException ex) {
                     ex.printStackTrace();
                 }
@@ -168,23 +175,52 @@ public class ListFiles {
      * @param fileName <name>.csv of source file (or its complete path from code_jar root directory)
      * @return 2D ArrayList of String data
      */
-    public static ArrayList<ArrayList<String>> csv2array(String fileName)
+    public static ArrayList<ArrayList<String>> csv2array(String fileName, boolean isDFS)
             throws IOException {
         ArrayList<ArrayList<String>> table = new ArrayList<>();
-        String path = System.getProperty("user.dir") + System.getProperty("file.separator") + fileName;
-        FileReader file = new FileReader(path);
-        Scanner file2record = new Scanner(file);
-        while(file2record.hasNextLine()) {
-            Scanner record2value = new Scanner(file2record.nextLine());
-            record2value.useDelimiter(CSV_DELIMIT);
-            ArrayList<String> record = new ArrayList<>();
-            //while(record2value.hasNext())//activate line for seeing all the columns
+        String path=null;
+        if(isDFS)
+            path = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4dfs" + System.getProperty("file.separator") + "dfsCache"+System.getProperty("file.separator")+ fileName;
+        else
+            path = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4ufs" + System.getProperty("file.separator") + "ufsCache"+System.getProperty("file.separator")+ fileName;
+        File rootDir= new File(path);
+        if(rootDir.exists()) {
+            FileReader file = new FileReader(path);
+            Scanner file2record = new Scanner(file);
+
+            while (file2record.hasNextLine()) {
+                Scanner record2value = new Scanner(file2record.nextLine());
+                record2value.useDelimiter(CSV_DELIMIT);
+                ArrayList<String> record = new ArrayList<>();
+                //while(record2value.hasNext())//activate line for seeing all the columns
                 record.add(record2value.next());
-            table.add(record);
-            record2value.close();
+                table.add(record);
+                record2value.close();
+            }
+
+            file2record.close();
+            file.close();
         }
-        file2record.close();
-        file.close();
+        else
+        {
+            System.out.println("Root Directory not found locally, being downloaded from the cloud, please wait..");
+            if(isDFS)
+            {
+                String rootDirURI= DFSConfig.getRootinode()+fileName;
+                try {
+                    Dfs3Download.start(rootDirURI, isDFS);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            else
+            {
+
+            }
+
+
+        }
         return table;
     }
 }

@@ -14,11 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 //import static Communication.ForwardXML.xmlSender;
-import static dfsMgr.Download.Reassembly.stichfiles;
 import static dfs3Util.file.*;
 import static dfs3test.encrypt.Hash.comparehash;
 import static dfs3test.xmlHandler.XMLWriter.writer;
@@ -38,24 +36,35 @@ public class Dfs3Download{
     static TreeMap splitParts =null;
     static TreeMap splits= null;
     static String fileURI=null;
+    static boolean isDFS;
     /**
      * Starts the download process.
      * This method starts the download of the file from DFS.
      * It interacts with the communication manager on DFS behalf for
      * download.
      * @param fileuri fileUri of the file that user selected
+     * @param isDfs
      * @throws IOException for input output exception
      * @throws GeneralSecurityException In case of general security violation occurs
      */
-    public static void start(String fileuri) throws IOException, GeneralSecurityException {
-        //Extracting String of fileName from FileURI
-        fileURI=fileuri;
-        System.out.println(fileURI +" being downloaded");
-        String[] parts = fileURI.split("/");
-        int i = parts.length;
-        fileName = parts[i-1];
-        //System.out.println(fileName);
-        String xmlCachePath=System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ fileName + "_Inode.xml";
+    public static void start(String fileuri, boolean isDfs) throws IOException, GeneralSecurityException {
+        String xmlCachePath=null;
+        isDFS=isDfs;
+        if(isDFS) {
+            //Extracting String of fileName from FileURI
+            fileURI = fileuri;
+            System.out.println(fileURI + " being downloaded");
+            String[] parts = fileURI.split("/");
+            int i = parts.length;
+            fileName = parts[i - 1];
+            xmlCachePath=System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ fileName + "_Inode.xml";
+        }
+        else
+        {
+            fileName=fileuri;
+            xmlCachePath=System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ fileName + "_Inode.xml";
+        }
+
         //check whether inode xml corresponding to the file exists in cache
         //System.out.println(xml);
         Path file = Paths.get(xmlCachePath);
@@ -69,21 +78,37 @@ public class Dfs3Download{
 
             byte[] completeFile = stitchFromCache(splitParts);
             System.out.println("File Stitched");
-            postDownload(fileURI, completeFile);
+            if(isDFS)
+                postDownload(fileURI, completeFile);
+            else
+                postDownload(fileName, completeFile);
         }
         else
         {
             System.out.println("Being downloaded from the network...");
             //Download the inode from the network
-            String inodeURI = fileURI+"_Inode.xml";
-
+            String inodeURI = null;
+            System.out.println("File Name: " +fileName);
+            if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
+                inodeURI = fileURI;
+            else
+            {
+                if(isDFS)
+                    inodeURI = fileURI+"_Inode.xml";
+                else
+                    inodeURI = fileName+"_Inode.xml";
+            }
             // get path to splitindex.csv and retrieve the segment inodes
-
+            System.out.println("inode: " +inodeURI);
             String hashedInode = Hash.hashpath(inodeURI);
             System.out.println("Hash of inode file:" + hashedInode);
             // xml query  with fileUri.tag for download is 2
             //the data filed is blank hence "Nothing" to avoid null pointer exception
-            String xmlPath = writer(2,hashedInode,"Nothing".getBytes(), true);
+            String xmlPath = null;
+            if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
+                xmlPath = writer(2,hashedInode,"Nothing".getBytes(), false);
+            else
+                xmlPath = writer(2,hashedInode,"Nothing".getBytes(), true);
             // TODO - retrieve the Ip of the node responsible
             // hand over the xml query to xmlSender
             Sender.start(xmlPath, "localhost");
@@ -93,7 +118,11 @@ public class Dfs3Download{
     }//end of start
 
     private static byte[] stitchFromCache(TreeMap splitParts) {
-        String dir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator");
+        String dir = null;
+        if(isDFS)
+            dir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator");
+        else
+            dir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator");
         byte[] completeFile = new byte[0];
         Set set = splitParts.keySet();
         Object[] o = set.toArray();
@@ -135,31 +164,28 @@ public class Dfs3Download{
         Reassembly.start(inbound,fileName);
         segmentCount++;
         System.out.println(segmentCount+" files have been downloaded");
-        List<String> splitList = new ArrayList<String>(splits.keySet());
-        String[] segmentInodes= splitList.toArray(new String[0]);
-        // if all segments have been downloaded then start stitching them
-        if(segmentCount == segmentInodes.length) {
-            byte[] completeFile = stitchFromCache(splits);
-            System.out.println("File Stitched");
-            postDownload(fileURI, completeFile);
-            ;
+        if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
+        {
+            System.out.println("Root Directory has been downloaded from the cloud successfully!");
+            System.out.println("Please go to main menu and download files now");
         }
-        else
-            System.out.println("Download in progress");
+        else {
+            List<String> splitList = new ArrayList<String>(splits.keySet());
+            String[] segmentInodes = splitList.toArray(new String[0]);
+            // if all segments have been downloaded then start stitching them
+            if (segmentCount == segmentInodes.length) {
+                byte[] completeFile = stitchFromCache(splits);
+                System.out.println("File Stitched");
+                if(isDFS)
+                    postDownload(fileURI, completeFile);
+                else
+                    postDownload(fileName,completeFile);
 
-        /*
-        String splitFile = System.getProperty("user.dir") + System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+fileName+"_Inode.csv";
+            } else
+                System.out.println("Download in progress");
+        }
 
-        //String[] segmentInode = csvreader(splitFile,fileName);
-        // increment segment count on receiving each segment
-        segmentCount++;
-        System.out.println(+segmentCount+" files have been downloaded");
-        // if all segments have been downloaded then start stitching them
-        if(segmentCount == segmentInodes.length)
-            stichfiles(fileName,segmentCount);
-        else
-            System.out.println("Download in progress"); */
-    }
+   }
     /**
      * receives the complete filepluskey after stitching
      * from reassembly. This method checks up the completefile for
@@ -172,21 +198,29 @@ public class Dfs3Download{
     public static void postDownload(String fileURI, byte[] completefile) throws GeneralSecurityException, IOException {
 
         // compare the hash of completefile with the original filepluskey
-        boolean hashMatch = comparehash(fileURI,completefile);
+        boolean hashMatch = comparehash(fileURI,completefile, isDFS);
         // retrieve data, decrypt data after decrypting key
         // write the file on decrypting data
         if(hashMatch){
-            // if the hash matches then retrieve encrypted key
-            byte[] encKey = TLVParser.startParsing(completefile, 2);
-            // retrieve framed data
-            byte[] serialisedEncData = deconcat(completefile,encKey.length+8);
-            // retrieve encrypted data after parsing the TLV
-            byte[] encData = TLVParser.startParsing(serialisedEncData, 3);
-            // get decrypted data
-            byte[] data = Encrypt.startDec(encData,encKey);
-            // write the data to original inode for the user
-            String[] writePath = fileName.split("@@");
-            writeData(data,writePath[0]);
+            if(isDFS) {
+                // if the hash matches then retrieve encrypted key
+                byte[] encKey = TLVParser.startParsing(completefile, 2);
+                // retrieve framed data
+                byte[] serialisedEncData = deconcat(completefile, encKey.length + 8);
+                // retrieve encrypted data after parsing the TLV
+                byte[] encData = TLVParser.startParsing(serialisedEncData, 3);
+                // get decrypted data
+                byte[] data = Encrypt.startDec(encData, encKey);
+                // write the data to original inode for the user
+                String[] writePath = fileName.split("@@");
+                writeData(data, writePath[0]);
+            }
+            else
+            {
+                //byte[] plainData=TLVParser.startParsing(completefile, 3);
+                String[] writePath = fileName.split("@@");
+                writeData(completefile, writePath[0]);
+            }
         }
         else
             System.out.println("hash mismatch");
@@ -207,7 +241,11 @@ public class Dfs3Download{
         // after retrieving the sequence number retain only value
         // discard type and length
         byte[] data = deconcat(decoded,16);
-        String xmlCachePath=System.getProperty("user.dir") + System.getProperty("file.separator") + fileName + "_Inode.xml";
+        String xmlCachePath=null;
+        if(isDFS)
+            xmlCachePath=System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+ System.getProperty("file.separator")+"dfsCache" + System.getProperty("file.separator")+fileName + "_Inode.xml";
+        else
+            xmlCachePath=System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+ System.getProperty("file.separator")+"ufsCache" + System.getProperty("file.separator")+ fileName + "_Inode.xml";
         writeData(data,xmlCachePath);
         ReadInode inodeReader = null;
         try{
@@ -216,11 +254,18 @@ public class Dfs3Download{
             HashMap<String, String> splitList = inodeReader.getSplitParts();
             splits= new TreeMap(splitList);
             for(String splitPart : splitList.keySet()) {
-                String hashedInode = Hash.hashpath(DFSConfig.getRootinode() + splitPart);
+                String hashedInode = null;
+                if(isDFS)
+                    hashedInode = Hash.hashpath(DFSConfig.getRootinode() + splitPart);
+                else
+                    hashedInode = Hash.hashpath(splitPart);
                 // xml query  with inode.tag for download is 2
                 //the data filed is blank hence "Nothing" to avoid null pointer exception
                 String xmlPath = writer(2, hashedInode, "localhost".getBytes(), false);
-                System.out.println("Query for "+DFSConfig.getRootinode() + splitPart + " sent to network");
+                if(isDFS)
+                    System.out.println("Query for "+DFSConfig.getRootinode() + splitPart + " sent to network");
+                else
+                    System.out.println("Query for " + splitPart + " sent to network");
                 System.out.println("Query sent: "+ hashedInode);
                 // TODO - retrieve the Ip of the node responsible
                 // hand over the xml query to xmlSender
@@ -260,17 +305,21 @@ public class Dfs3Download{
             if(sequenced[1]==0 && sequenced[2]==0 &&sequenced[3]==0)
                 sequenceNo = sequenced[0];
             //byte[] data = TLVParser.startParsing(sequenced,4);
-            System.out.println("Segment No: "+sequenceNo+"under progress");
+            System.out.println("Segment No: "+ sequenceNo +" under progress");
             // after retrieving the sequence number retain only value
             // discard type and length
             byte[] data = deconcat(inbound,16);
             // access the splitIndex to retrieve the inode for the segment
-
-            //String splitFile = dir + "SplitIndex.csv";
-            //String[] segmentInode = csvreader(splitFile,fileName);
-            List<String> splitList = new ArrayList<String>(splits.keySet());
-            String[] segmentInodes= splitList.toArray(new String[0]);
-
+            String[] segmentInodes = new String[1];
+            if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv")) {
+                System.out.println("reached here..");
+                segmentInodes[0] = fileName;
+            }
+            else
+            {
+                List<String> splitList = new ArrayList<String>(splits.keySet());
+                segmentInodes = splitList.toArray(new String[0]);
+            }
             for(int i=0; i<=segmentInodes.length; i++)
             {
              if(sequenceNo==i) {

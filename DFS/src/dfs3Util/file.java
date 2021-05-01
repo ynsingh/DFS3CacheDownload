@@ -147,17 +147,22 @@ public class file {
      * </p>
      * @param inode inode of file acts as the primary key here
      * @param hashOfFile will be used to store hash of file for comparision
-     * when the file is downloaded
+     * @param isDFS
      */
-    public static void index(String inode, String hashOfFile){
+    public static void index(String inode, String hashOfFile, boolean isDFS){
         HashMap<String,String> index = new HashMap<>();
         // Put elements to the map
         index.put(inode, hashOfFile);// Put elements to the map
-        String fileName = "uploaded.csv";
+        String fileName1 = "DFSuploaded.csv";
+        String fileName2 = "UFSuploaded.csv";
         /* Write CSV */
+        String uploadPath = null;
+        if(isDFS)
+                uploadPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4dfs" + System.getProperty("file.separator")+ "dfsCache"+System.getProperty("file.separator")+fileName1;
+        else
+            uploadPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4ufs" + System.getProperty("file.separator")+ "ufsCache"+System.getProperty("file.separator")+fileName2;
+
         try {
-            String uploadPath = System.getProperty("user.dir") +
-                    System.getProperty("file.separator") + fileName;
             // true is for appending and false is for over writing
             FileWriter writer = new FileWriter(uploadPath, true);
             Set set = index.entrySet();

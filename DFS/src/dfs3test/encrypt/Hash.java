@@ -67,7 +67,7 @@ public class Hash {
      * @param fileName the fileName used to retrieve hash of file from index
      * @param fileData byte array with key and file data.
      */
-    public static boolean comparehash(String fileName,byte[] fileData) {
+    public static boolean comparehash(String fileName,byte[] fileData, boolean isDFS) {
         String hashOfFile = null;
         boolean result ;
         // compute hash and check integrity
@@ -77,8 +77,11 @@ public class Hash {
         }catch (Exception e){
             e.printStackTrace();
         }
-        String index = System.getProperty("user.dir") +
-                System.getProperty("file.separator") + "uploaded.csv";
+        String index = null;
+        if(isDFS)
+            index = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4dfs" + System.getProperty("file.separator") + "dfsCache"+System.getProperty("file.separator") + "DFSuploaded.csv";
+        else
+            index = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4ufs" + System.getProperty("file.separator") + "ufsCache"+System.getProperty("file.separator") + "UFSuploaded.csv";
         String retrievedValue = Locate.csvreader(index,fileName);
         System.out.println("Hash retrieved: "+ retrievedValue);
         assert hashOfFile != null;

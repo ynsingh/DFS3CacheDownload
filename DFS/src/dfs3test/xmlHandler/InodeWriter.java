@@ -5,20 +5,20 @@ import init.DFSConfig;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.lang.reflect.Array;
-import java.security.Timestamp;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 
 public class InodeWriter {
-    public static void writeInode(String fileName, long fileSize, HashMap<String, String> index)
+    public static void writeInode(String fileName, long fileSize, HashMap<String, String> index, boolean isDFS)
     {
         try {
-            String inode = System.getProperty("user.dir") +
+            String inode = null;
+            if(isDFS)
+                inode = System.getProperty("user.dir") +
                     System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
+            else
+                inode = System.getProperty("user.dir") +
+                        System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
             //System.out.println(inode);
             XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newFactory();
             XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(inode));

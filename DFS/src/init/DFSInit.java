@@ -21,7 +21,7 @@ public class DFSInit {
             }
         });
         rx.start();
-        //dfsCacheMgr.CacheScheduler.scheduler();
+        dfsCacheMgr.CacheScheduler.scheduler();
         //DFSUI DUI = new DFSUI();
         //WatchDir.startWatchDir();
         UFSUI UUI = new UFSUI();

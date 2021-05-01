@@ -106,7 +106,7 @@ public class UFSUI extends JFrame {
         btnDownload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                ListFiles.start();//reference to Upload.start()
+                ListFiles.start(false);//reference to Upload.start()
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -115,7 +115,7 @@ public class UFSUI extends JFrame {
         btnDelete.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                ListFiles.start();//reference to Upload.start()
+                ListFiles.start(false);//reference to Upload.start()
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
