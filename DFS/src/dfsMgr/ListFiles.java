@@ -204,9 +204,10 @@ public class ListFiles {
         else
         {
             System.out.println("Root Directory not found locally, being downloaded from the cloud, please wait..");
+            String rootDirURI=null;
             if(isDFS)
             {
-                String rootDirURI= DFSConfig.getRootinode()+fileName;
+                rootDirURI= DFSConfig.getRootinode()+fileName;
                 try {
                     Dfs3Download.start(rootDirURI, isDFS);
                 } catch (GeneralSecurityException e) {
@@ -216,6 +217,13 @@ public class ListFiles {
             }
             else
             {
+                String dfsID=DFSConfig.getRootinode();
+                rootDirURI=dfsID.split("/")[2]+"/"+fileName;
+                try {
+                    Dfs3Download.start(rootDirURI, isDFS);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
 
             }
 

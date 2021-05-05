@@ -121,7 +121,11 @@ public class Upload {
                     inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ Segmentation.nameOfFile + "_Inode.xml";
                 despatch(inode, 0, isDFS);
                 //Now uploading the updated root directory in the cloud
-                String rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ "DFSuploaded.csv";
+                String rootDir=null;
+                if(isDFS)
+                    rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ "DFSuploaded.csv";
+                else
+                    rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ "UFSuploaded.csv";
                 String hashofFile = hashgenerator(encData.array());
                 if(isDFS)
                     index(fileURI, hashofFile, isDFS);
@@ -176,7 +180,13 @@ public class Upload {
         if(isDFS)
             hashedInode = Hash.hashpath(DFSConfig.getRootinode() + segmentName);
         else
-            hashedInode = Hash.hashpath(segmentName);
+            if(segmentName.equals("UFSuploaded.csv")) {
+                String dfsID = DFSConfig.getRootinode();
+                String uploadInode = dfsID.split("/")[2]+"/"+segmentName;
+                hashedInode = Hash.hashpath(uploadInode);
+            }
+                else
+                hashedInode = Hash.hashpath(segmentName);
 
         System.out.println("Hash of segment URL: "+hashedInode);
         //compute the hash of segment
