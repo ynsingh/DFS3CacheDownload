@@ -14,11 +14,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 //import static Communication.ForwardXML.xmlSender;
 import static dfs3Util.file.*;
 import static dfs3test.encrypt.Hash.comparehash;
+import static dfs3test.encrypt.Hash.hashgenerator;
 import static dfs3test.xmlHandler.XMLWriter.writer;
 import static java.lang.System.*;
 
@@ -52,6 +54,14 @@ public class Dfs3Download{
         String xmlCachePath=null;
         isDFS=isDfs;
         out.println("File URI: "+ fileuri);
+        String hash = null;
+        boolean isHash = Hash.isValidSHA256(fileuri);
+        if (isHash) {
+            hash = writer(2, fileuri, "Nothing".getBytes(), true);
+            Sender.start(hash, "localhost");
+        }
+        else
+        {
         if(isDFS) {
             //Extracting String of fileName from FileURI
             fileURI = fileuri;
@@ -62,17 +72,18 @@ public class Dfs3Download{
             xmlCachePath= getProperty("user.dir") + getProperty("file.separator") +"b4dfs"+ getProperty("file.separator")+"dfsCache"+ getProperty("file.separator")+ fileName + "_Inode.xml";
         }
         else {
-            String[] parts = fileuri.split("/");
-            int i = parts.length;
-            fileName = parts[i - 1];
-            if (fileName.equals("UFSuploaded.csv")) {
-                out.println(fileName+" being downloaded");
-                xmlCachePath = getProperty("user.dir") + getProperty("file.separator") + "b4ufs" + getProperty("file.separator") + "ufsCache" + getProperty("file.separator") + fileName + "_Inode.xml";
-            } else {
-                fileName = fileuri;
-                xmlCachePath = getProperty("user.dir") + getProperty("file.separator") + "b4ufs" + getProperty("file.separator") + "ufsCache" + getProperty("file.separator") + fileName + "_Inode.xml";
+                String[] parts = fileuri.split("/");
+                int i = parts.length;
+                fileName = parts[i - 1];
+                if (fileName.equals("UFSuploaded.csv")) {
+                    out.println(fileName + " being downloaded");
+                    xmlCachePath = getProperty("user.dir") + getProperty("file.separator") + "b4ufs" + getProperty("file.separator") + "ufsCache" + getProperty("file.separator") + fileName + "_Inode.xml";
+                } else {
+                    fileName = fileuri;
+                    xmlCachePath = getProperty("user.dir") + getProperty("file.separator") + "b4ufs" + getProperty("file.separator") + "ufsCache" + getProperty("file.separator") + fileName + "_Inode.xml";
+                }
             }
-        }
+
         //check whether inode xml corresponding to the file exists in cache
         //System.out.println(xml);
         Path file = Paths.get(xmlCachePath);
@@ -91,40 +102,38 @@ public class Dfs3Download{
             else
                 postDownload(fileName, completeFile);
         }
-        else
-        {
+        else {
             out.println("Being downloaded from the network...");
             //Download the inode from the network
             String inodeURI = null;
-            out.println("File Name: " +fileName);
-            if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv")) {
-                if(fileName.equals("DFSuploaded.csv"))
+            out.println("File Name: " + fileName);
+            if (fileName.equals("DFSuploaded.csv") || fileName.equals("UFSuploaded.csv")) {
+                if (fileName.equals("DFSuploaded.csv"))
                     inodeURI = fileURI;
                 else
-                    inodeURI=fileuri;
-            }
-            else
-            {
-                if(isDFS)
-                    inodeURI = fileURI+"_Inode.xml";
+                    inodeURI = fileuri;
+            } else {
+                if (isDFS)
+                    inodeURI = fileURI + "_Inode.xml";
                 else
-                    inodeURI = fileName+"_Inode.xml";
+                    inodeURI = fileName + "_Inode.xml";
             }
             // get path to splitindex.csv and retrieve the segment inodes
-            out.println("inode: " +inodeURI);
+            out.println("inode: " + inodeURI);
             String hashedInode = Hash.hashpath(inodeURI);
             out.println("Hash of inode file:" + hashedInode);
             // xml query  with fileUri.tag for download is 2
             //the data filed is blank hence "Nothing" to avoid null pointer exception
             String xmlPath = null;
-            if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
-                xmlPath = writer(2,hashedInode,"Nothing".getBytes(), false);
+            if (fileName.equals("DFSuploaded.csv") || fileName.equals("UFSuploaded.csv"))
+                xmlPath = writer(2, hashedInode, "Nothing".getBytes(), false);
             else
-                xmlPath = writer(2,hashedInode,"Nothing".getBytes(), true);
+                xmlPath = writer(2, hashedInode, "Nothing".getBytes(), true);
+
             // TODO - retrieve the Ip of the node responsible
             // hand over the xml query to xmlSender
             Sender.start(xmlPath, "localhost");
-
+        }
         }
 
     }//end of start
@@ -209,34 +218,66 @@ public class Dfs3Download{
 
     public static void postDownload(String fileURI, byte[] completefile) throws GeneralSecurityException, IOException {
 
+        if (isDFS)
+            dfsDownload(fileURI, completefile);
+        else
+            ufsDownload(fileURI, completefile);
+    }
+
+    private static void dfsDownload(String fileURI, byte[] completefile) {
         // compare the hash of completefile with the original filepluskey
         boolean hashMatch = comparehash(fileURI,completefile, isDFS);
         // retrieve data, decrypt data after decrypting key
         // write the file on decrypting data
-        if(hashMatch){
-            if(isDFS) {
-                // if the hash matches then retrieve encrypted key
-                byte[] encKey = TLVParser.startParsing(completefile, 2);
-                // retrieve framed data
-                byte[] serialisedEncData = deconcat(completefile, encKey.length + 8);
-                // retrieve encrypted data after parsing the TLV
-                byte[] encData = TLVParser.startParsing(serialisedEncData, 3);
-                // get decrypted data
-                byte[] data = Encrypt.startDec(encData, encKey);
-                // write the data to original inode for the user
-                String[] writePath = fileName.split("@@");
-                writeData(data, writePath[0]);
+        if(hashMatch) {
+
+            // if the hash matches then retrieve encrypted key
+            byte[] encKey = TLVParser.startParsing(completefile, 2);
+            // retrieve framed data
+            byte[] serialisedEncData = deconcat(completefile, encKey.length + 8);
+            // retrieve encrypted data after parsing the TLV
+            byte[] encData = TLVParser.startParsing(serialisedEncData, 3);
+            // get decrypted data
+            byte[] data = new byte[0];
+            try {
+                data = Encrypt.startDec(encData, encKey);
+            } catch (GeneralSecurityException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            else
-            {
-                //byte[] plainData=TLVParser.startParsing(completefile, 3);
-                String[] writePath = fileName.split("@@");
-                writeData(completefile, writePath[0]);
-            }
+            // write the data to original inode for the user
+            String[] writePath = fileName.split("@@");
+            writeData(data, writePath[0]);
         }
         else
             out.println("hash mismatch");
         out.println("The Download is complete");
+
+        }
+    private static void ufsDownload(String fileURI, byte[] completefile) {
+
+        byte[] fileHash= Arrays.copyOf(completefile,64);
+
+        byte[] data = deconcat(completefile,64);
+        String hashCalc= null;
+        try {
+            hashCalc = Hash.hashgenerator(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        byte[] hasharray = hashCalc.getBytes();
+        System.out.println("Hash calculated from received file: "+hashCalc);
+        //assert hashRecd != null;
+        if(Arrays.equals(hasharray,fileHash)) {
+            String[] writePath = fileName.split("@@");
+            writeData(data, writePath[0]);
+            System.out.println("Download successfully completed!");
+        }
+        else
+            System.out.println("Hash Mismatch");
     }
 
     public static void inodeDownload(byte[] decoded) {
@@ -262,6 +303,7 @@ public class Dfs3Download{
         ReadInode inodeReader = null;
         try{
             inodeReader = InodeReader.reader(xmlCachePath);
+            fileName=inodeReader.getFileName();
             out.println("File Name:" + inodeReader.getFileName());
             HashMap<String, String> splitList = inodeReader.getSplitParts();
             splits= new TreeMap(splitList);

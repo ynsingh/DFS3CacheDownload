@@ -8,6 +8,7 @@ import init.DFSConfig;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -87,12 +88,18 @@ public class Upload {
                     randomAccessFile.close();
                     channel.close();
                     //Encrypt the file and key and combine both using TLV framing for DFS
-                    byte[] filePlusKey=null;
+                    byte[] filePlusKey;
                     if(isDFS) {
                         filePlusKey = Encrypt.startEnc(plainData);
                         System.out.println("file encrypted successfully!");
                     }
-                    else filePlusKey= plainData;
+                    else {
+                        String fileHash=hashgenerator(plainData);
+                        byte [] hashByteArray=fileHash.getBytes();
+                        filePlusKey = concat(hashByteArray,plainData);
+                        System.out.println("Hash length: "+hashByteArray.length);
+                        System.out.println("Hash: "+fileHash);
+                    }
                     encData = ByteBuffer.wrap(filePlusKey);
                     //send the file for segmentation
                     Segmentation.start(encData, path, isDFS);
@@ -126,9 +133,10 @@ public class Upload {
                     rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ "DFSuploaded.csv";
                 else
                     rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ "UFSuploaded.csv";
-                String hashofFile = hashgenerator(encData.array());
-                if(isDFS)
+                String hashofFile=hashgenerator(encData.array());
+                if(isDFS) {
                     index(fileURI, hashofFile, isDFS);
+                }
                 else
                 {
                     String file=fileName+"@@"+fileSuffix;

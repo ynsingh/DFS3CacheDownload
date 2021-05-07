@@ -87,4 +87,7 @@ public class Hash {
         assert hashOfFile != null;
         return hashOfFile.equals(retrievedValue);
     }
+    public static boolean isValidSHA256(String s) {
+        return s.matches("^[a-fA-F0-9]{64}$");
+    }
 }
