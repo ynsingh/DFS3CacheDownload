@@ -188,7 +188,7 @@ public class Dfs3Download{
         if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
         {
             out.println("Root Directory has been downloaded from the cloud successfully!");
-            out.println("Please go to main menu and download files now");
+            ListFiles.start(isDFS);
         }
         else {
             List<String> splitList = new ArrayList<String>(splits.keySet());

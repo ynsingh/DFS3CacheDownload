@@ -200,6 +200,7 @@ public class ListFiles {
 
             file2record.close();
             file.close();
+            return table;
         }
         else
         {
@@ -229,6 +230,8 @@ public class ListFiles {
 
 
         }
-        return table;
+        ListFiles.start(isDFS);
+
+        return null;
     }
 }
