@@ -1,4 +1,4 @@
-package UFS1;
+package init;
 
 import dfsMgr.Dfs3Download;
 import dfsMgr.ListFiles;

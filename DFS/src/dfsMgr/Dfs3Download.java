@@ -177,7 +177,7 @@ public class Dfs3Download{
      * @throws GeneralSecurityException In case of general security violation occurs
      */
     public static void segmentDownload(byte[] inbound) throws GeneralSecurityException, IOException {
-        out.println("so far so good!");
+
         // send segments for reassembly
         //String downloadPath = System.getProperty("user.dir") + System.getProperty("file.separator")+"Downloaded";
         //Files.createDirectory(Path.of(downloadPath));
@@ -188,6 +188,7 @@ public class Dfs3Download{
         if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
         {
             out.println("Root Directory has been downloaded from the cloud successfully!");
+            segmentCount--;
             ListFiles.start(isDFS);
         }
         else {

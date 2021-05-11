@@ -230,8 +230,7 @@ public class ListFiles {
 
 
         }
-        ListFiles.start(isDFS);
 
-        return null;
+        return table;
     }
 }

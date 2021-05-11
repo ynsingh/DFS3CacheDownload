@@ -21,11 +21,10 @@ public class CacheScheduler {
         timer = new Timer();
         timer.schedule(new RemindTask(),
                 0,        //initial delay
-                1000*60*60*24);  //subsequent rate
+                1000*60*60*24);  //subsequent rate - 24 hours
     }
 
     static class RemindTask extends TimerTask {
-
 
         public void run() {
             Path cachePath= Paths.get(DFSConfig.dfsCache);
@@ -47,4 +46,3 @@ public class CacheScheduler {
         System.out.println("Task scheduled.");
     }
 }
-

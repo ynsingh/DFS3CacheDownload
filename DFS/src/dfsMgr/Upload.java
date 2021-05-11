@@ -145,14 +145,7 @@ public class Upload {
                 despatch(rootDir, 0, isDFS);
                 System.out.println("Updated root directory uploaded.");
                 System.out.println("Upload completed");
-                // compute hash of the combination of encrypted Key and data of original file
 
-                // index the hash against the original inode for comparing after
-                // downloading the file from cloud. DbaseAPI.index
-
-
-                //inodeIndex(inodeFileName, hashofInode);
-                //System.out.println("hash of inode being uploaded: "+hashedInodeInode);
                 if(isDFS)
                     DFSConfig.update(fileSize);
                 else

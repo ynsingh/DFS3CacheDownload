@@ -21,23 +21,23 @@ public class CacheSizeDelete {
         getSortedFilesByDateCreated(dir,  true);
 
         //System.out.println("-- deleting old files --");
-        deleteOldFiles(dir, cacheSize);
+        int count = deleteOldFiles(dir, cacheSize);
 
         //System.out.println("--Files remaining  after cache  clear operation--");
         getSortedFilesByDateCreated(dir, true);
-        return 0;
+        return count;
     }
 
 
     public static int deleteOldFiles(Path parentFolder, long limit) {
         List<Path> files = getSortedFilesByDateCreated(parentFolder, true);
-        System.out.println("Local cache authorized: "+limit);
+        System.out.println("Local cache authorized: "+(limit/(1024*1024))+"MB");
         long cacheOccupied = DFSConfig.getCacheOccupied();
         int count=0;
-        limit=10*1024*1024;
+
         if(cacheOccupied <=limit*0.9){
 
-            System.out.println("Sufficient cache available: "+DFSConfig.getCacheOccupied());
+            System.out.println("Sufficient cache available: "+(DFSConfig.getCacheOccupied()/(1024*1024))+"MB");
             return 0;
         }
         else
