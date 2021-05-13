@@ -117,7 +117,7 @@ public class WatchDir<recursive> {
 
                 if (kind==ENTRY_CREATE)
                 {
-                    Upload.start();
+                    Upload.start(false);
                 }
 
 

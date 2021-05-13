@@ -1,5 +1,6 @@
 package init;
 
+import dfsMgr.Dfs3Download;
 import dfsMgr.ListFiles;
 
 import javax.swing.*;
@@ -9,7 +10,7 @@ import java.security.GeneralSecurityException;
 
 import static dfsMgr.Upload.start;
 
-public class DFSUI extends JFrame {
+public class UFSUI extends JFrame {
     private final JMenuBar menu;
     private final JMenu m1;
     private JMenuItem View, Upload, Download, Delete, Exit, Modify;
@@ -18,12 +19,12 @@ public class DFSUI extends JFrame {
     private JTextArea tac;
     private JLabel lbllogo;
 
-    public DFSUI() {
+    public UFSUI() {
         //menu bar and menu item initialization
         menu = new JMenuBar();
         m1 = new JMenu("Options");
 
-        View = new JMenuItem("My Drive");
+        View = new JMenuItem("My UFS Drive");
         Upload = new JMenuItem("Upload");
         Download = new JMenuItem("Download");
         Delete = new JMenuItem("Delete");
@@ -34,23 +35,23 @@ public class DFSUI extends JFrame {
         // The first line initialises the button with text as displayed against
         // each. the second line shows the tip related to the button
 
-        btnView = new JButton("My Drive");
-        btnView.setToolTipText("Show the contents in Drive");
+        btnView = new JButton("My UFS");
+        btnView.setToolTipText("Show the contents in UFS");
 
         btnUpload = new JButton("Upload");
-        btnUpload.setToolTipText("Upload to Drive");
+        btnUpload.setToolTipText("Upload to UFS");
 
         btnDelete = new JButton("DELETE");
-        btnDelete.setToolTipText("Delete from Drive");
+        btnDelete.setToolTipText("Delete from UFS");
 
         btnDownload = new JButton("Download");
-        btnDownload.setToolTipText("Download from Drive");
+        btnDownload.setToolTipText("Download from UFS");
 
         btnModify = new JButton("Modify");
-        btnModify.setToolTipText("Modify the contents in Drive");
+        btnModify.setToolTipText("Modify the contents in UFS");
 
         btnExit = new JButton("Exit");
-        btnExit.setToolTipText("Exit from DFS");
+        btnExit.setToolTipText("Exit from UFS");
         //initialization of panel
         // change these to add or remove any of the panel
         pMain = new JPanel();
@@ -89,7 +90,7 @@ public class DFSUI extends JFrame {
         this.setSize(500, 400);
         this.setResizable(false);
         this.setLocation(450, 200);
-        this.setTitle("DFS Drive");
+        this.setTitle("UFS");
         this.show();
 // The following sections list all the action listeners in order
 // change here to modify what a button does
@@ -97,7 +98,7 @@ public class DFSUI extends JFrame {
         btnUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                start(true);//reference to Upload.start()
+                start(false);//reference to Upload.start()
             } catch (IOException | GeneralSecurityException ex) {
                 ex.printStackTrace();
             }
@@ -105,33 +106,98 @@ public class DFSUI extends JFrame {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
         btnDownload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
-            try {
-                ListFiles.start(true);//reference to Upload.start()
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            //ListFiles.start(false);//reference to Upload.start()
+            ufsOptions();
         });
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
         btnDelete.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                ListFiles.start(true);//reference to Upload.start()
+                ListFiles.start(false);//reference to Upload.start()
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         });
     }
+    public static void ufsOptions() {
 
+        /*JFrame frame = new JFrame("UFS Download Options");
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 500);
+        frame.setLocation(430, 100);
 
-    // Starts the DFS module
-    /*public static void main(String args[])
-    {
-        // creates new GUI object and runs the GUI for DFS
-        DFSUI UI = new DFSUI();
-        try {
-            Receiver.start();
-        } catch (IOException e) {
-            e.printStackTrace();
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        frame.add(panel);
+
+        JLabel lbl = new JLabel("Select one of the possible choices and click OK");
+        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panel.add(lbl);
+
+        String[] choices = { "Hash of File", "Name of File with timestamp", "Email ID of Originator"};
+
+        final JComboBox<String> cb = new JComboBox<String>(choices);
+
+        cb.setMaximumSize(cb.getPreferredSize());
+        cb.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(cb);
+
+        JButton btn = new JButton("OK");
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.add(btn);
+
+        frame.setVisible(true);
+
+        btn.addActionListener(e -> {
+            //Take the input from the user and pass to Dfs3dDownload
+            try {
+                ListFiles.start(false);//reference to Upload.start()
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });*/
+        String[] ufsOptions = { "Hash of File", "File Name with Time Stamp", "Email ID of Owner"};
+        String options = (String) JOptionPane.showInputDialog(null, "Which option do you want to Download the file with?", "UFS Download Options",
+                JOptionPane.PLAIN_MESSAGE, null, ufsOptions, ufsOptions[0]);
+        switch (options) {
+            case "Hash of File":
+                String hashOfFile = JOptionPane.showInputDialog("Enter the Hash of the File");
+                try {
+                    Dfs3Download.start(hashOfFile, false);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+
+            case "File Name with Time Stamp":
+                String fileName = JOptionPane.showInputDialog("Enter the File Name in Filename@@TimeStamp format");
+                try {
+                    Dfs3Download.start(fileName, false);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+
+            case "Email ID of Owner":
+                String mailID = JOptionPane.showInputDialog("Enter the Email ID of the file owner");
+                String rootDir=mailID+"/"+"UFSuploaded.csv";
+                try {
+                    Dfs3Download.start(rootDir, false);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
         }
-    }*/
+
+    }
 }
+

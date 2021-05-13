@@ -42,7 +42,7 @@ public class Delete {
             String hashedInode = Hash.hashpath("DFS://sidharth@iitk.ac.in"+segmentInode[i]);
             // xml query  with inode.tag for delete is 3
             //the data filed is blank hence "Nothing" to avoid null pointer exception
-            String xmlPath = writer(3,hashedInode,"Nothing".getBytes());
+            String xmlPath = writer(3,hashedInode,"Nothing".getBytes(), false);
             //TODO - retrieve the ip of the responsible node
             // send query for deletion to destination
             Sender.start(xmlPath, "localhost");

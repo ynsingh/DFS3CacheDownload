@@ -3,7 +3,9 @@ package dfsMgr;
 import dfs3Util.TLVParser;
 import dfs3test.encrypt.GenerateKeys;
 import dfs3test.encrypt.Hash;
+import init.DFSConfig;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -54,10 +56,14 @@ public class Store {
         // when the hash matches write the segment data with segment inode as filename
         if (match) {
             writeData(encFile, writepath);//
-            index1(writepath,"root_index.csv");
+            index1(hashedInode,"root_index.csv");
             // initialise replication
             //initReplicate(encFile,hashedInode);
+            File segment = new File(writepath);
+            long segmentSize = segment.length();
+            DFSConfig.setLocalOccupied(segmentSize);
         } else
           System.out.println("hash mismatch cant store file");
     }//end of start
+
 }

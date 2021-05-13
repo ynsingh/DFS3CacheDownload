@@ -1,9 +1,6 @@
 package dfs3test.xmlHandler;
 
-import dfsMgr.Download;
-import dfsMgr.Erase;
-import dfsMgr.Locate;
-import dfsMgr.Store;
+import dfsMgr.*;
 import ReplicaMgt.Replicate;
 
 import javax.xml.stream.XMLInputFactory;
@@ -57,6 +54,8 @@ public class XMLReader {
                         // and put it through method set Data into the object
                         }else if(xmlStreamReader.getLocalName().equals("Data")){
                             query.setData(xmlStreamReader.getElementText());
+                        }else if(xmlStreamReader.getLocalName().equals("isInode")){
+                            query.setIsInode(Boolean.parseBoolean(xmlStreamReader.getElementText()));
                         }
                         break;
                     case XMLStreamConstants.CHARACTERS:
@@ -88,6 +87,7 @@ public class XMLReader {
         byte[] decoded = new byte[0];
         String inode = null;
         int id = 0;
+        boolean isInode=false;
         // retrieve each element from querylist
         for(ReadObject value : queryList){
             // get the value of id from the object
@@ -96,6 +96,7 @@ public class XMLReader {
             inode = value.getInode();
             // if id is 1 which is for upload or id is 20 which is for Locate
             // then read data
+            isInode = value.getIsInode();
             if(id == 1|id == 20|id == 4|id==2)
             {
                 // read the string into encoded bytes and then decode the base64 code
@@ -120,7 +121,7 @@ public class XMLReader {
             try {
                 Locate.start(inode,new String(decoded));
                 f.delete();
-            } catch (IOException | GeneralSecurityException e) {
+            } catch (IOException | GeneralSecurityException | XMLStreamException e) {
                 e.printStackTrace();
             }
         // if id is 3 query message from delete call erase
@@ -129,9 +130,14 @@ public class XMLReader {
             f.delete();
         }
         // if id is 20  response message from Locate call download
-        else if(id == 20)
+        else if(id == 20 && isInode) {
+            Dfs3Download.inodeDownload(decoded);
+            f.delete();
+        }
+            // if id is 20  response message from Locate call download
+        else if(id == 20 && !isInode)
             try {
-                Download.segmentDownload(decoded);
+                Dfs3Download.segmentDownload(decoded);
                 f.delete();
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();
