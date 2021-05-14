@@ -61,7 +61,8 @@ public class Store {
             //initReplicate(encFile,hashedInode);
             File segment = new File(writepath);
             long segmentSize = segment.length();
-            DFSConfig.setLocalOccupied(segmentSize);
+            DFSConfig.setLocalOccupied();
+            DFSConfig.setLocalBalance();
         } else
           System.out.println("hash mismatch cant store file");
     }//end of start

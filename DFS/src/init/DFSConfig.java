@@ -25,6 +25,25 @@ public class DFSConfig implements Serializable {
     private static String ufsDir;
     private static String ufsCache;
 
+    public static long getLocalBalance() {
+        boolean flag = config.readConfig();
+        if(flag)
+            return config.localBalance;
+        else
+            return 0;
+    }
+
+    public static void setLocalBalance() {
+        config.localBalance = config.getLocalOffered()-config.localOccupied;
+        boolean flag = config.writeConfig(config);
+        if (flag)
+            System.out.println("Local balance space updated successfully");
+        else
+            System.out.println("Local balance space update failed");
+    }
+
+    private static long localBalance;
+
     private DFSConfig(){
         //Prevent form the reflection api.
         if (config != null){
@@ -65,13 +84,12 @@ public class DFSConfig implements Serializable {
     {
         JFrame frame;
         frame = new JFrame("Brihaspati-4 DFS/UFS");
-        JOptionPane.showMessageDialog(frame, "This is Brihaspati 4 Distributed File System : A peer-to-peer cloud storage system" +
+        JOptionPane.showMessageDialog(frame, "Welcome to B4 DFS/UFS.\nThis is Brihaspati 4 Distributed File System : A peer-to-peer cloud storage system" +
                 "\nYou will get cloud storage 50% that of local storage offered (e.g.500MB cloud storage for 1GB local disk space offered)",
                 "Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
         //System.out.println("This is Brihaspati 4 Distributed File System : A peer-to-peer cloud storage system");
         //System.out.println("You will get cloud storage 50% that of local storage offered (e.g.500MB cloud storage for 1GB local disk space offered)");
         //Functions to get emailID, pubU and and pvtU
-
         //Obtain the free space in current working directory at the time of initialization
         File file = new File(System.getProperty("user.dir"));
         config.initlocalFree= file.getFreeSpace();
@@ -92,7 +110,7 @@ public class DFSConfig implements Serializable {
                     config.cloudAuth=config.localOffered/2;
                     config.cloudAvlb=config.cloudAuth;
                     config.localCacheSize=config.cloudAuth/10;
-                    //setCacheOccupied();
+                    config.localOccupied=0;
                 }
                 else
                 {
@@ -147,7 +165,9 @@ public class DFSConfig implements Serializable {
             System.out.println("UFS directory created successfully");
             Files.createDirectory(pathuCache);
             System.out.println("UFS cache directory created successfully");
-            setCloudOccupied(0);
+            setCacheOccupied();
+            setLocalOccupied();
+            setLocalBalance();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -163,7 +183,6 @@ public class DFSConfig implements Serializable {
     void regInit() throws IOException {
         JFrame frame;
         frame = new JFrame("Brihaspati-4 DFS/UFS");
-        JOptionPane.showMessageDialog(frame,"DFS is already initialized.\nUFS is already initialized","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
         //System.out.println("DFS is already initialized");
         //System.out.println("Configuration file is in: "+configFile);
         boolean flag = readConfig();
@@ -174,24 +193,33 @@ public class DFSConfig implements Serializable {
             System.out.println("You have already used: "+ (config.getCloudOccupied()/(1024*1024))+"MB cloud space");
             System.out.println("Cloud space available is:" + (config.getCloudAvlb()/(1024*1024))+"MB");
             setCacheOccupied();
-            JOptionPane.showMessageDialog(frame,"Your authorized cloud space is: "+ (config.getCloudAuth()/(1024*1024*1024))+"GB" +
-                    "\nCloud space available is:" + (getCloudAvlb()/(1024*1024))+"MB"
-                    +"\nCache occupied is:"+ (cacheOccupied/(1024*1024))+"MB","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
-            long localSpace = getLocalOccupied();
-            if(localSpace<(0.75*localOffered))
-                System.out.println("Adequate local space available.");
-            if(localSpace>(0.75*localOffered)&&localSpace<(0.9*localOffered))
+            setLocalOccupied();
+            JOptionPane.showMessageDialog(frame,"Welcome back to B4 DFS/UFS.\n"+
+                    "Cloud space utilization: "+(getCloudOccupied()/(1024*1024))+"MB / "+(getCloudAuth()/(1024*1024))+"MB\n"
+                    +"Cache utilization: "+ (getCacheOccupied()/(1024*1024))+"MB / "+(getLocalCacheSize()/(1024*1024))+"MB\n"
+                    +"Local space utilization: "+ (getLocalOccupied()/(1024*1024))+"MB / "+(getLocalOffered()/(1024*1024))+"MB\n",
+                    "Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
+            File cwd = new File(System.getProperty("user.dir"));
+            long localFree= cwd.getFreeSpace();
+            long localBal = getLocalBalance();
+            System.out.println("local space available for DFS: "+(localFree/(1024*1024))+"MB");
+            if(localFree<(0.95*localBal))
             {
-                JOptionPane.showMessageDialog(frame,"Local space occupied is more than 75% of space offered"
-                        +"\nPlease free up local space","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
-                if(localSpace>(0.9*localOffered))
-                {
-                    JOptionPane.showMessageDialog(frame,"Local space occupied is more than 90% of space offered"
-                            +"\nYou cannot use B4 DFS unless you free up local space ","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
-                    System.exit(1);
-                }
+                System.out.println("Local space warning 90%+ and exit.");
+                JOptionPane.showMessageDialog(frame,"Local space occupied is more than 95% of space offered"
+                        +"\nYou cannot use B4 DFS unless you clear local drive space","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
+                System.exit(1);
             }
 
+            else if(localFree>(0.75*localBal))
+            {
+                System.out.println("Local space warning 75%.");
+                JOptionPane.showMessageDialog(frame,"Local space occupied is more than 75% of space offered"
+                        +"\nPlease free up local space","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
+
+            }
+            else
+                System.out.println("Adequate local space available.");
         }
     }
 
@@ -243,10 +271,23 @@ public class DFSConfig implements Serializable {
     public long localfree;
     public long localOffered;
 
-    public static long setLocalOccupied(long localOccupied) {
-        config.localOccupied = config.localOccupied+localOccupied;
-        System.out.println("Local space Occupied:"+config.localOccupied);
-        return config.localOccupied;
+    public static void setLocalOccupied() {
+        String dfsSrvr=config.dfsDir+System.getProperty("file.separator")+"dfsSrvr";
+        File file = new File(dfsSrvr);
+        File[] files = file.listFiles();
+        long length = 0;
+        int count;
+        count = files.length;
+        // loop for traversing the directory
+        for (int i = 0; i < count; i++) {
+            length += files[i].length();
+        }
+        config.localOccupied=length;
+        boolean flag = config.writeConfig(config);
+        if(flag)
+            System.out.println("Local occupied Updated: "+ (config.localOccupied/(1024*1024))+"MB");
+        else
+            System.out.println("Local occupied Update failed");
     }
 
     public long localOccupied;
@@ -361,12 +402,14 @@ public class DFSConfig implements Serializable {
      *
      */
     public void setLocalfree() {
-        String dfsSrvr=config.dfsDir+System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsSrvr"+System.getProperty("file.separator");
-        File file = new File(dfsSrvr);
-        config.localfree=getLocalOffered()-file.getFreeSpace();
+
+        config.localfree=getLocalOffered()-getLocalOccupied();
         boolean flag = config.writeConfig(config);
-        if(flag);
-        else System.out.println("Local free update filed");
+        if(flag)
+            System.out.println("Local free Updated: "+ (localOccupied/(1024*1024))+"MB");
+        else
+            System.out.println("Local free Update failed");
+
     }
 
     /**
@@ -384,12 +427,11 @@ public class DFSConfig implements Serializable {
      * @return the localOccupied
      */
     public long getLocalOccupied() {
-        String dfsSrvr=config.dfsDir+System.getProperty("file.separator")+"dfsSrvr"+System.getProperty("file.separator");
-        System.out.println(dfsSrvr);
-        File file = new File(dfsSrvr);
-        config.localOccupied=file.getTotalSpace();
-        System.out.println("Local Occupied: "+config.localOccupied);
-        return config.localOccupied;
+        boolean flag = config.readConfig();
+        if(flag)
+            return config.localOccupied;
+        else
+            return 0;
     }
 
     /**
@@ -415,6 +457,10 @@ public class DFSConfig implements Serializable {
             length += files[i].length();
         }
         cacheOccupied=length;
-        System.out.println("Cache Size Updated.."+ (cacheOccupied/(1024*1024))+"MB");
+        boolean flag = config.writeConfig(config);
+        if(flag)
+            System.out.println("Cache Size Updated.."+ (cacheOccupied/(1024*1024))+"MB");
+        else
+            System.out.println("Cache Size Updated failed");
     }
 }

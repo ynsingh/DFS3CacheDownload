@@ -21,6 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import dfs3test.xmlHandler.*;
 
+import javax.swing.*;
+
 import static dfs3Util.file.*;
 import static dfs3test.encrypt.Encrypt.concat;
 import static dfs3test.encrypt.Hash.hashgenerator;
@@ -56,10 +58,17 @@ public class Upload {
     static String fileSuffix;
     static long fileSize;
 
-    public static void start(boolean isDFS) throws NullPointerException, IOException,
+    public static boolean start(boolean isDFS) throws NullPointerException, IOException,
             GeneralSecurityException {
 
         path=readpath();
+        JDialog dialog = new JDialog();
+        JLabel label = new JLabel("Uploading. Please wait...");
+        dialog.setLocationRelativeTo(null);
+        dialog.setTitle("Uploading. Please Wait...");
+        dialog.add(label);
+        dialog.pack();
+        dialog.setVisible(true);
         path1= Paths.get(path);
         fileName = path1.getFileName().toString();
         fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
@@ -150,18 +159,24 @@ public class Upload {
                     DFSConfig.update(fileSize);
                 else
                     System.out.println("File Successfully uploaded in UFS");
+                dialog.setVisible(false);
+                return true;
             }
             else {
 
                 System.out.println("Cloud space available is:" + cloudAvlb);
                 System.out.println("File Size is: " + fileSize);
                 System.out.println("Cloud space available is not sufficient");
+                dialog.setVisible(false);
+                return false;
             }
         }
 
      catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+         dialog.setVisible(false);
+            return false;
         }
 
     }//end of start

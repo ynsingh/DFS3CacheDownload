@@ -5,7 +5,7 @@ import java.net.Socket;
 
 public class Sender {
     public static void start(String xmlPath, String IP) throws IOException {
-        try (Socket socket = new Socket(IP, 4444)) {
+        try (Socket socket = new Socket(IP, 4445)) {
 
             File file = new File(xmlPath);
             // Get the size of the file
