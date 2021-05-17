@@ -72,7 +72,7 @@ public class Upload {
         path1= Paths.get(path);
         fileName = path1.getFileName().toString();
         fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-        fileURI = DFSConfig.getRootinode() + fileName+ "@@" + fileSuffix ;
+        fileURI = DFSConfig.getRootInode() + fileName+ "@@" + fileSuffix ;
         fileSize = Util.checkFileSize(path);
         //check whether adequate space is available in the user cloud
         try {
@@ -194,10 +194,10 @@ public class Upload {
         //Generate the inode of segment and compute the hash of the same
         String hashedInode = null;
         if(isDFS)
-            hashedInode = Hash.hashpath(DFSConfig.getRootinode() + segmentName);
+            hashedInode = Hash.hashpath(DFSConfig.getRootInode() + segmentName);
         else
             if(segmentName.equals("UFSuploaded.csv")) {
-                String dfsID = DFSConfig.getRootinode();
+                String dfsID = DFSConfig.getRootInode();
                 String uploadInode = dfsID.split("/")[2]+"/"+segmentName;
                 hashedInode = Hash.hashpath(uploadInode);
             }

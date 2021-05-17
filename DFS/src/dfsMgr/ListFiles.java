@@ -208,7 +208,7 @@ public class ListFiles {
             String rootDirURI=null;
             if(isDFS)
             {
-                rootDirURI= DFSConfig.getRootinode()+fileName;
+                rootDirURI= DFSConfig.getRootInode()+fileName;
                 try {
                     Dfs3Download.start(rootDirURI, isDFS);
                 } catch (GeneralSecurityException e) {
@@ -218,7 +218,7 @@ public class ListFiles {
             }
             else
             {
-                String dfsID=DFSConfig.getRootinode();
+                String dfsID=DFSConfig.getRootInode();
                 rootDirURI=dfsID.split("/")[2]+"/"+fileName;
                 try {
                     Dfs3Download.start(rootDirURI, isDFS);

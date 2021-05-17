@@ -41,7 +41,7 @@ public class InodeWriter {
             //write fileURI attribute
             xMLStreamWriter.writeCharacters(Upload.fileURI);
             //System.out.println(Upload.fileURI);
-            System.out.println(DFSConfig.getRootinode());
+            //System.out.println(DFSConfig.getRootInode());
             //end fileURI
             xMLStreamWriter.writeEndElement();
             //start Author element

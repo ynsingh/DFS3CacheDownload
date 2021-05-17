@@ -3,26 +3,36 @@ package init;
 import dfs3test.communication.Receiver;
 import java.io.*;
 import java.security.GeneralSecurityException;
-
-
-import javax.swing.*;
-
+/**
+ * This class is the entry point for DFS-UFS when running is stand alone mode.
+ *<p>1. It creates a singleton of DFSConfig responsible for initiating and maintaining the state of DFS</p>
+ *<p>2. It starts a thread for receiver which constantly listens for any incoming messages/segments from other nodes</p>
+ *<p>3. It initiates a thread to monitor and manage local cache created for DFS</p>
+ *<p>4. Lastly, displays the GUI for the user for further user actions.</p>
+ */
 public class DFSInit {
-
+   /**
+     * Main method to enter the stand alone DFS code.
+     * @param args - not used
+     * @throws IOException in case of IO exception
+     * @throws GeneralSecurityException in case of general security exception
+     * @throws InterruptedException interrupt exception
+     */
     public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException {
 
+        //Create singleton object of DFSConfig.
         DFSConfig dfsconfig = DFSConfig.getInstance();
-        Thread rx = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Receiver.start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        Thread rx;
+        rx = new Thread(() -> {
+            try {
+                Receiver.start();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
+        //Start receiving server
         rx.start();
+        //Initialize thread to monitor and manage local cache for DFS
         dfsCacheMgr.CacheScheduler.scheduler();
         DFSUI DUI = new DFSUI();
     }

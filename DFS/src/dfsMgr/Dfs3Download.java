@@ -334,14 +334,14 @@ public class Dfs3Download{
             for(String splitPart : splitList.keySet()) {
                 String hashedInode = null;
                 if(isDFS)
-                    hashedInode = Hash.hashpath(DFSConfig.getRootinode() + splitPart);
+                    hashedInode = Hash.hashpath(DFSConfig.getRootInode() + splitPart);
                 else
                     hashedInode = Hash.hashpath(splitPart);
                 // xml query  with inode.tag for download is 2
                 //the data filed is blank hence "Nothing" to avoid null pointer exception
                 String xmlPath = writer(2, hashedInode, "localhost".getBytes(), false);
                 if(isDFS)
-                    out.println("Query for "+DFSConfig.getRootinode() + splitPart + " sent to network");
+                    out.println("Query for "+DFSConfig.getRootInode() + splitPart + " sent to network");
                 else
                     out.println("Query for " + splitPart + " sent to network");
                 out.println("Query sent: "+ hashedInode);
