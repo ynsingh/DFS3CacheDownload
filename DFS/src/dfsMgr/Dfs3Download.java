@@ -7,8 +7,17 @@ import dfs3test.encrypt.Hash;
 import dfs3test.xmlHandler.InodeReader;
 import dfs3test.xmlHandler.ReadInode;
 import init.DFSConfig;
+import org.xml.sax.SAXException;
 
 import javax.swing.*;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,6 +77,7 @@ public class Dfs3Download{
         if (isHash) {
             hash = writer(2, fileuri, "Nothing".getBytes(), true);
             Sender.start(hash, "localhost");
+            boolean flag = dfs3Util.file.deleteFile(hash);
         }
         else
         {
@@ -142,6 +152,7 @@ public class Dfs3Download{
                 // TODO - retrieve the Ip of the node responsible
                 // hand over the xml query to xmlSender
                 Sender.start(xmlPath, "localhost");
+                boolean flag = dfs3Util.file.deleteFile(xmlPath);
             }
         }
     }//end of start
@@ -186,36 +197,76 @@ public class Dfs3Download{
      */
     public static void segmentDownload(byte[] inbound) throws GeneralSecurityException, IOException {
 
-        // send segments for reassembly
-        //String downloadPath = System.getProperty("user.dir") + System.getProperty("file.separator")+"Downloaded";
-        //Files.createDirectory(Path.of(downloadPath));
-        //String filePath = downloadPath+fileName;
-        Reassembly.start(inbound,fileName,isDFS);
-        segmentCount++;
-        out.println(segmentCount+" files have been downloaded");
-        if(fileName.equals("DFSuploaded.csv")||fileName.equals("UFSuploaded.csv"))
-        {
-            out.println("Root Directory has been downloaded from the cloud successfully!");
-            segmentCount--;
-            ListFiles.start(isDFS);
+        boolean flag = checkInode(inbound);
+        System.out.println("isInode flag: " + flag);
+        if (flag) {
+            parseInode(inbound);
         }
-        else {
-            List<String> splitList = new ArrayList<String>(splits.keySet());
-            String[] segmentInodes = splitList.toArray(new String[0]);
-            // if all segments have been downloaded then start stitching them
-            if (segmentCount == segmentInodes.length) {
-                byte[] completeFile = stitchFromCache(splits);
-                out.println("File Stitched");
-                if(isDFS)
-                    postDownload(fileURI, completeFile);
-                else
-                    postDownload(fileName,completeFile);
+        else
+        {
+            Reassembly.start(inbound, fileName, isDFS);
+            segmentCount++;
+            out.println(segmentCount + " files have been downloaded");
+            if (fileName.equals("DFSuploaded.csv") || fileName.equals("UFSuploaded.csv")) {
+                out.println("Root Directory has been downloaded from the cloud successfully!");
+                segmentCount--;
+                ListFiles.start(isDFS);
+            } else {
+                List<String> splitList = new ArrayList<String>(splits.keySet());
+                String[] segmentInodes = splitList.toArray(new String[0]);
+                // if all segments have been downloaded then start stitching them
+                if (segmentCount == segmentInodes.length) {
+                    byte[] completeFile = stitchFromCache(splits);
+                    out.println("File Stitched");
+                    if (isDFS)
+                        postDownload(fileURI, completeFile);
+                    else
+                        postDownload(fileName, completeFile);
 
-            } else
-                out.println("Download in progress");
+                } else
+                    out.println("Download in progress");
+            }
         }
 
     }
+
+    private static boolean checkInode(byte[] inbound) {
+        String tempXml=System.getProperty("user.dir")+System.getProperty("file.separator")+"temp.xml";
+        byte[] data = deconcat(inbound,16);
+        dfs3Util.file.writeData(data, tempXml);
+
+        String xsd = System.getProperty("user.dir")+System.getProperty("file.separator")+"inode.xsd";
+        SchemaFactory sFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        try {
+            sFactory.newSchema(new File(xsd));
+            Schema schema = sFactory.newSchema(new File(xsd));
+            Validator validator = schema.newValidator();
+            validator.validate(new StreamSource(new File(tempXml)));
+            dfs3Util.file.deleteFile(tempXml);
+            return true;
+        } catch (SAXException | IOException e) {
+            //e.printStackTrace();
+            System.out.println("not an inode");
+            dfs3Util.file.deleteFile(tempXml);
+            return false;
+        }
+        /*ReadInode inodeReader = null;
+        boolean isInode;
+        try {
+            inodeReader = InodeReader.reader(tempXml);
+            isInode = inodeReader.getIsInode();
+            boolean fbit = inodeReader.getFbit();
+            System.out.println("isInode from xml:" + isInode);
+            System.out.println("fbit from xml:" + fbit);
+            dfs3Util.file.deleteFile(tempXml);
+            return isInode;
+        } catch (Exception e) {
+            //System.out.println("Not an inode");
+            dfs3Util.file.deleteFile(tempXml);
+            return false;
+        } */
+    }
+
     /**
      * receives the complete filepluskey after stitching
      * from reassembly. This method checks up the completefile for
@@ -304,7 +355,7 @@ public class Dfs3Download{
 
     }
 
-    public static void inodeDownload(byte[] decoded) {
+    public static void parseInode(byte[] decoded) {
         int sequenceNo = 0;
         // parse the down loaded segements by Type, Length and value
         // here sequenced means the parsed byte array
@@ -348,6 +399,7 @@ public class Dfs3Download{
                 // TODO - retrieve the Ip of the node responsible
                 // hand over the xml query to xmlSender
                 Sender.start(xmlPath, "localhost");
+                dfs3Util.file.deleteFile(xmlPath);
             }
 
 

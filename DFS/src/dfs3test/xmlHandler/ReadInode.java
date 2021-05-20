@@ -1,6 +1,6 @@
 package dfs3test.xmlHandler;
-
 import java.util.*;
+
 
 public class ReadInode {
     private String fileName;
@@ -9,7 +9,8 @@ public class ReadInode {
     private String author;
     private int noOfSegments;
     private String timestamp;
-    private Boolean fbit;
+    private boolean fbit;
+    private boolean isInode;
     private HashMap<String, String> splitParts = new HashMap<>();
 
     public String getFileName() {
@@ -72,6 +73,12 @@ public class ReadInode {
 
     public ReadInode setFbit(Boolean fbit) {
         this.fbit = fbit;
+        return this;
+    }
+    public Boolean getIsInode() { return isInode; }
+
+    public ReadInode setIsInode(Boolean isInode) {
+        this.isInode = isInode;
         return this;
     }
 

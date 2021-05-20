@@ -71,6 +71,12 @@ public class InodeWriter {
             xMLStreamWriter.writeCharacters(String.valueOf(Upload.fBit));
             //end FBit
             xMLStreamWriter.writeEndElement();
+            //start isInode element
+            xMLStreamWriter.writeStartElement("isInode");
+            //write isInode attribute
+            xMLStreamWriter.writeCharacters(String.valueOf(true));
+            //end isDFS
+            xMLStreamWriter.writeEndElement();
             //write segment key and values
             //xMLStreamWriter.writeStartElement("SplitParts");
             //int i =1;
@@ -86,13 +92,6 @@ public class InodeWriter {
                 xMLStreamWriter.writeCharacters("---");
                 // write the hash of the current splitpart
                 xMLStreamWriter.writeCharacters(String.valueOf(entry.getValue()));
-                //System.out.println(String.valueOf(entry.getValue()));
-                /*Iterator it = index.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry pairs = (Map.Entry)it.next();
-                    System.out.println(pairs.getKey() + " = " + pairs.getValue());
-                }*/
-                //end tuple
                 xMLStreamWriter.writeEndElement();
             }
             //end splitpart table

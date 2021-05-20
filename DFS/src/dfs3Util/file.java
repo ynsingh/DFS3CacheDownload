@@ -54,6 +54,8 @@ public class file {
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
             // write the content of byte array data to the file output stream
             fos.write(data);
+            fos.flush();
+            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -86,6 +88,8 @@ public class file {
         }
         String[] temp = new String[pos];
         System.arraycopy(localPath,0,temp,0,pos);
+        br.close();
+        fileStream.close();
         return temp;
     }
     /**
@@ -292,4 +296,19 @@ public class file {
         }
     }
 
+    public static boolean deleteFile(String fileName) {
+        //File file = new File(fileName);
+        Path filePath = Paths.get(fileName);
+        try {
+            boolean flag = Files.deleteIfExists(filePath);
+            if(flag)
+                System.out.println("temp file deleted");
+            else
+                System.out.println("temp file not deleted");
+            return flag;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

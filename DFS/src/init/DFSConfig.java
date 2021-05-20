@@ -37,13 +37,7 @@ public class DFSConfig implements Serializable {
      * Getter for root Inode of DFS
      * @return root Inode of the DFS
      */
-    public static String getRootInode() {
-        boolean flag = config.readConfig();
-        if(flag)
-            return config.rootInode;
-        else
-            return null;
-    }
+    public static String getRootInode() { return config.rootInode; }
 
     String mailID; //Stores email ID of the user registered with Brihaspati-4.
 
@@ -51,16 +45,8 @@ public class DFSConfig implements Serializable {
      * Getter for email ID of the user.
      * @return String mailID.
      */
-    public static String getMailID() {
-        String result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.mailID;
-        } else {
-            result = null;
-        }
-        return result;
-    }
+    public static String getMailID() { return config.mailID;}
+
     private String dfsDir;
     private String dfsSrvr;
     public static String dfsCache=System.getProperty("user.dir") +System.getProperty("file.separator")+
@@ -84,16 +70,8 @@ public class DFSConfig implements Serializable {
      * Getter for the localOffered
      * @return the localOffered
      */
-    public long getLocalOffered() {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.localOffered;
-        } else {
-            result = 0;
-        }
-        return result;
-    }
+    public long getLocalOffered() { return config.localOffered; }
+
 
     private long localOccupied; //Stores amount of local disk space occupied at the node by DFS as part of the cloud.
 
@@ -123,15 +101,8 @@ public class DFSConfig implements Serializable {
      * Getter for localOccupied
      * @return the localOccupied
      */
-    public long getLocalOccupied() {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.localOccupied;
-        } else {
-            result = 0L;
-        }
-        return result;
+    public long getLocalOccupied()  {
+        return config.localOccupied;
     }
 
     private long localFree; //Stores current free disk space in the current working directory
@@ -139,22 +110,12 @@ public class DFSConfig implements Serializable {
      * Getter for localFree
      * @return long localFree
      */
-    public long getLocalFree() {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.localFree;
-        } else {
-            result = 0L;
-        }
-        return result;
-    }
+    public long getLocalFree() { return config.localFree;}
 
     /**
      *Setter for localFree
      */
     public void setLocalFree() {
-
         String cwd=System.getProperty("user.dir");
         File cwDir = new File(cwd);
         config.localFree=cwDir.getFreeSpace();
@@ -163,7 +124,6 @@ public class DFSConfig implements Serializable {
             System.out.println("Local free Updated: "+ (config.localFree/(1024*1024))+"MB");
         else
             System.out.println("Local free Update failed");
-
     }
 
     private static long localBalance; //variable that maintains balance of the local space that was initially offered.
@@ -172,16 +132,7 @@ public class DFSConfig implements Serializable {
      * Getter for localBalance
      * @return long localBalance
      */
-    public long getLocalBalance() {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = localBalance;
-        } else {
-            result = 0L;
-        }
-        return result;
-    }
+    public long getLocalBalance() { return config.localBalance; }
 
     /**
      * Setter for long localBalance
@@ -204,48 +155,30 @@ public class DFSConfig implements Serializable {
      * Getter for Cloud space authorized.
      * @return the cloudAuth
      */
-    public double getCloudAuth() {
-        double result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.cloudAuth;
-        } else {
-            result = 0;
-        }
-        return result;
-    }
+    public double getCloudAuth() { return config.cloudAuth; }
 
     private long cloudOccupied;
     /**
      * @return the Cloud Occupied
      */
-    public static long getCloudOccupied() {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.cloudOccupied;
-        } else {
-            result = 0;
-        }
-        return result;
-    }
+    public static long getCloudOccupied() { return config.cloudOccupied; }
 
     /**
      * @param fileSize file size is added to cloudOccupied.
      */
     public static void setCloudOccupied(long fileSize) {
-        boolean flag1 = config.readConfig();
-        if(flag1) {
             config.cloudOccupied = config.cloudOccupied + fileSize;
             boolean flag = config.writeConfig(config);
-            if (flag)
-                System.out.println("Cloud occupied Updated: " + (config.cloudOccupied / (1024 * 1024)) + "MB");
-            else
-                System.out.println("Cloud Occupied update filed");
-        }
+            System.out.println("Cloud occupied Updated: " + (config.cloudOccupied / (1024 * 1024)) + "MB");
     }
 
     private long cloudAvlb;
+    /**
+     * Getter for Cloud Available.
+     * @return the cloudAvlb
+     */
+    public static long getCloudAvlb() throws IOException { return config.cloudAvlb; }
+
     /**
      * @param  cloudOccupied long cloud occupied file size.
      */
@@ -259,49 +192,18 @@ public class DFSConfig implements Serializable {
             else
                 System.out.println("Cloud Available update filed");
         }
-
-    }
-
-    /**
-     * Getter for Cloud Available.
-     * @return the cloudAvlb
-     */
-    public static long getCloudAvlb() throws IOException {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.cloudAvlb;
-        } else {
-            result = 0L;
-        }
-        return result;
     }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // All local cache related variables.
     private long localCacheSize;
-    public static long getLocalCacheSize() {
-        long result;
-        boolean flag = config.readConfig();
-        if (flag) {
-            result = config.localCacheSize;
-        } else {
-            result = 0;
-        }
-        return result;
-    }
+    public static long getLocalCacheSize() { return config.localCacheSize; }
 
     static long cacheOccupied;
     /**
      * @return the cacheOccupied
      */
-    public static long getCacheOccupied() {
-        boolean flag = config.readConfig();
-        if(flag)
-            return cacheOccupied;
-        else
-            return 0;
-    }
+    public static long getCacheOccupied() { return config.cacheOccupied; }
 
     public static void setCacheOccupied() {
 
@@ -381,7 +283,9 @@ public class DFSConfig implements Serializable {
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(config);
             oos.close();
-            System.out.println("DFS Config file updated successfully");
+            fos.flush();
+            fos.close();
+            //System.out.println("DFS Config file updated successfully");
             return true;
         } catch(Exception e) {
             e.printStackTrace();
@@ -401,6 +305,7 @@ public class DFSConfig implements Serializable {
             ObjectInputStream ois = new ObjectInputStream(fis);
             config = (DFSConfig) ois.readObject();
             ois.close();
+            fis.close();
             result = true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();

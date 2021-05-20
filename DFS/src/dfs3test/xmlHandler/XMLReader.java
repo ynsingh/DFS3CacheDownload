@@ -32,9 +32,10 @@ public class XMLReader {
         // Initialise Input factory
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
+            FileInputStream fis = new FileInputStream(fileName);
             // Initialise a stream reader with fileName
             XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader
-                    (new FileInputStream(fileName));
+                    (fis);
             // Each event is identified with a integer value
             int event = xmlStreamReader.getEventType();
             // till there is a next event the loop will continue
@@ -80,7 +81,10 @@ public class XMLReader {
                 // needed thats why the query list is there
                 event = xmlStreamReader.next();
             }
+            fis.close();
         } catch (FileNotFoundException | XMLStreamException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
         // reading individual fields from the object query
@@ -106,12 +110,11 @@ public class XMLReader {
         }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // this section is for calling the relevant programs based on tag
-        File f = new File(fileName);
         // if id is 1 then query message from upload hence call store
         if(id == 1)
         try {
             Store.start(decoded,inode);
-            f.delete();
+            dfs3Util.file.deleteFile(fileName);
         } catch (IOException | InvalidKeyException | InvalidKeySpecException
                 | SignatureException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -120,25 +123,26 @@ public class XMLReader {
         else if(id == 2)
             try {
                 Locate.start(inode,new String(decoded));
-                f.delete();
+                dfs3Util.file.deleteFile(fileName);
             } catch (IOException | GeneralSecurityException | XMLStreamException e) {
                 e.printStackTrace();
             }
         // if id is 3 query message from delete call erase
         else if(id == 3) {
             Erase.start(inode);
-            f.delete();
+            dfs3Util.file.deleteFile(fileName);
         }
         // if id is 20  response message from Locate call download
-        else if(id == 20 && isInode) {
+        /*else if(id == 20 && isInode) {
             Dfs3Download.inodeDownload(decoded);
             f.delete();
-        }
-            // if id is 20  response message from Locate call download
-        else if(id == 20 && !isInode)
+        }*/
+            // if id is 20, it is a response message to download from Locate
+        else if(id == 20) //&& !isInode)
             try {
                 Dfs3Download.segmentDownload(decoded);
-                f.delete();
+                dfs3Util.file.deleteFile(fileName);
+
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();
             }
@@ -146,7 +150,7 @@ public class XMLReader {
         else if(id == 4)
             try {
                 Replicate.start(decoded,inode);
-                f.delete();
+                dfs3Util.file.deleteFile(fileName);
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();
             }

@@ -17,8 +17,9 @@ public class XMLWriter {
         //queryList.add(new query(attributes to be passed));
         WriteObject query = new WriteObject(tag,hashInode,data, isInode);
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
-        try(FileOutputStream fos = new FileOutputStream(xmlFileName)){
-            XMLStreamWriter writer = xmlOutputFactory.createXMLStreamWriter(new FileOutputStream(xmlFileName), "UTF-8");
+        try{
+            FileOutputStream fos = new FileOutputStream(xmlFileName);
+            XMLStreamWriter writer = xmlOutputFactory.createXMLStreamWriter(fos, "UTF-8");
             //start writing xml file
             writer.writeStartDocument("UTF-8", "1.0");
             writer.writeCharacters("\n");
@@ -59,6 +60,8 @@ public class XMLWriter {
             //flush data to file and close writer
             writer.flush();
             writer.close();
+            fos.flush();
+            fos.close();
 
         }catch(XMLStreamException | FileNotFoundException e){
             e.printStackTrace();

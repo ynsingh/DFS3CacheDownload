@@ -15,6 +15,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dfs3Util.file.deconcat;
 import static dfs3Util.file.readdata;
 import static dfs3test.xmlHandler.XMLWriter.writer;
 
@@ -43,9 +44,6 @@ public class Locate {
     private static boolean hash;
 
     public static void start(String inode, String askerIP) throws IOException, GeneralSecurityException, XMLStreamException {
-
-
-
         //get the file where index is maintained by storage
         String path = System.getProperty("user.dir") + System.getProperty("file.separator")
                 + "root_index.csv";
@@ -53,19 +51,23 @@ public class Locate {
         String localPath = csvreader(path, inode);
         // read the file from local path
         byte[] encFile = readdata(localPath);
-        String xmlpath = System.getProperty("user.dir") + System.getProperty("file.separator")+inode+".xml";
+        //byte[] xmlData = deconcat(encFile,16);
+        //String tempXml = System.getProperty("user.dir") + System.getProperty("file.separator")+inode+".xml";
+        //dfs3Util.file.writeData(xmlData, tempXml);
         //System.out.println("reached here:"+xmlpath);
-        boolean isInode = isInodeReader(xmlpath);
+        //boolean isInode = isInodeReader(tempXml);
         //System.out.println("isInode:"+isInode);
         //System.out.println("reached here");
         // reply through XML. tag for reply to download is 20
-        String xmlPath = writer(20, inode, encFile, isInode);
+        String xmlPath = writer(20, inode, encFile, false);
         // TODO - handover the file to file sender and delete the line below
         Sender.start(xmlPath, "localhost");//shortcut
+        dfs3Util.file.deleteFile(xmlPath);
     }
 
     private static boolean isInodeReader(String path) throws FileNotFoundException, XMLStreamException {
 
+        String xmlPath = path+".xml";
         ReadObject query = null;
         // Initialise Input factory
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -119,6 +121,7 @@ public class Locate {
                 event = xmlStreamReader.next();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("xml reading error!");
 
         }

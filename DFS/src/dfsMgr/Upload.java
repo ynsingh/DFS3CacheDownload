@@ -8,7 +8,6 @@ import init.DFSConfig;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -127,15 +126,16 @@ public class Upload {
 
                 String[] segmentInode = csvreader(splitFile, path);
                 for (int i = 0; i < segmentInode.length && !(segmentInode[i] == null); i++) {
-                    despatch(segmentInode[i], i, isDFS);
+                    dispatch(segmentInode[i], i, isDFS);
                 }
+                boolean flag = dfs3Util.file.deleteFile(splitFile);
                 //Now uploading the inode of the file
                 String inode = null;
                 if(isDFS)
                     inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ Segmentation.nameOfFile + "_Inode.xml";
                 else
                     inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ Segmentation.nameOfFile + "_Inode.xml";
-                despatch(inode, 0, isDFS);
+                dispatch(inode, 0, isDFS);
                 //Now uploading the updated root directory in the cloud
                 String rootDir=null;
                 if(isDFS)
@@ -151,7 +151,7 @@ public class Upload {
                     String file=fileName+"@@"+fileSuffix;
                     index(file, hashofFile, isDFS);
                 }
-                despatch(rootDir, 0, isDFS);
+                dispatch(rootDir, 0, isDFS);
                 System.out.println("Updated root directory uploaded.");
                 System.out.println("Upload completed");
 
@@ -163,10 +163,6 @@ public class Upload {
                 return true;
             }
             else {
-
-                System.out.println("Cloud space available is:" + cloudAvlb);
-                System.out.println("File Size is: " + fileSize);
-                System.out.println("Cloud space available is not sufficient");
                 dialog.setVisible(false);
                 return false;
             }
@@ -180,7 +176,7 @@ public class Upload {
         }
 
     }//end of start
-    private static void despatch(String segmentInode,int i, boolean isDFS) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+    private static void dispatch(String segmentInode, int i, boolean isDFS) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
         byte[] segmentData = readdata(segmentInode);
         //Delete the segments once the data is read into byte array
         File f=new File(segmentInode);
@@ -219,9 +215,12 @@ public class Upload {
             xmlPath = writer(1, hashedInode, fileTx, true);
         else
             xmlPath = writer(1, hashedInode, fileTx, false);
+
         // handover the xml query to xmlSender (token for upload is 1)
         // TODO - query the dht and get the IP
         Sender.start(xmlPath, "localhost");
+        boolean flag = dfs3Util.file.deleteFile(xmlPath);
+
         System.out.println("Uploading Segment No " + (i + 1));
     }
 }
