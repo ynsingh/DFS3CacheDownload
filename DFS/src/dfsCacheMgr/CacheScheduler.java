@@ -27,7 +27,7 @@ public class CacheScheduler {
     static class RemindTask extends TimerTask {
 
         public void run() {
-            Path cachePath= Paths.get(DFSConfig.dfsCache);
+            Path cachePath= Paths.get(DFSConfig.getDfsCache());
             try {
                 //int i = CacheOldDelete.oldDelete(cachePath,15);
                 //System.out.println(i+" Files older than 15 days deleted from Cache");

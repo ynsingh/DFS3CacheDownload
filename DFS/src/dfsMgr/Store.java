@@ -44,8 +44,7 @@ public class Store {
             InvalidKeyException, InvalidKeySpecException {
         //TODO - receive the inode and hash from Xml handler with request to store
         //retrieve the signed hash and encrypted File
-        String writepath = System.getProperty("user.dir") +
-                System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsSrvr"+System.getProperty("file.separator")+hashedInode;
+        String writepath = DFSConfig.getDfsSrvr()+hashedInode;
         byte[] signedHash = TLVParser.startParsing(dataInbound, 1);
         //retrieve the encrypted file by removing the length of signed hash + tag + length
         byte[] encFile = deconcat(dataInbound,signedHash.length+8);

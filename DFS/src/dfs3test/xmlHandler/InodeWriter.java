@@ -1,5 +1,4 @@
 package dfs3test.xmlHandler;
-import dfsMgr.Upload;
 import init.DFSConfig;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -12,7 +11,8 @@ public class InodeWriter {
     public static void writeInode(String fileName, long fileSize, HashMap<String, String> index, boolean isDFS)
     {
         try {
-            String inode = null;
+            String inode;
+            String fileURI = DFSConfig.getRootInode()+fileName;
             if(isDFS)
                 inode = System.getProperty("user.dir") +
                     System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
@@ -39,7 +39,7 @@ public class InodeWriter {
             //start fileURI
             xMLStreamWriter.writeStartElement("FileURI");
             //write fileURI attribute
-            xMLStreamWriter.writeCharacters(Upload.fileURI);
+            xMLStreamWriter.writeCharacters(fileURI);
             //System.out.println(Upload.fileURI);
             //System.out.println(DFSConfig.getRootInode());
             //end fileURI
@@ -57,7 +57,7 @@ public class InodeWriter {
             xMLStreamWriter.writeCharacters(String.valueOf(index.size()));
             //end NoOfSegments
             xMLStreamWriter.writeEndElement();
-            String[] timeStamp = Upload.fileURI.split("@@");
+            String[] timeStamp = fileURI.split("@@");
             //start timestamp element
             xMLStreamWriter.writeStartElement("TimeStamp");
             //write timestamp attribute
@@ -68,7 +68,7 @@ public class InodeWriter {
             //start FBit element
             xMLStreamWriter.writeStartElement("FBit");
             //write FBit attribute
-            xMLStreamWriter.writeCharacters(String.valueOf(Upload.fBit));
+            xMLStreamWriter.writeCharacters(String.valueOf(true));
             //end FBit
             xMLStreamWriter.writeEndElement();
             //start isInode element

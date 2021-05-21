@@ -40,30 +40,50 @@ public class DFSConfig implements Serializable {
     public static String getRootInode() { return config.rootInode; }
 
     String mailID; //Stores email ID of the user registered with Brihaspati-4.
-
     /**
      * Getter for email ID of the user.
      * @return String mailID.
      */
     public static String getMailID() { return config.mailID;}
-
+    private void setMailID(String mailID) {
+        config.mailID = mailID;
+    }
     private String dfsDir;
+    public String getDfsDir() {
+        config.dfsDir = System.getProperty("user.dir") +System.getProperty("file.separator")+
+                "b4dfs"+System.getProperty("file.separator");
+        return config.dfsDir;
+    }
+
+    private String ufsDir;
+    //public String getUfsDir() { return ufsDir;}
+
     private String dfsSrvr;
-    public static String dfsCache=System.getProperty("user.dir") +System.getProperty("file.separator")+
-            "b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator");
+    public static String getDfsSrvr() {
+        config.dfsSrvr=System.getProperty("user.dir") +
+                System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsSrvr"+System.getProperty("file.separator");
+        return config.dfsSrvr;}
+
+    private String dfsCache;
+    public static String getDfsCache() {
+        config.dfsCache=System.getProperty("user.dir") +System.getProperty("file.separator")+
+                "b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator");
+        return config.dfsCache;
+    }
+
+    private String ufsCache;
+    public static String getUfsCache() {
+        config.ufsCache=System.getProperty("user.dir") +System.getProperty("file.separator")+
+                "b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator");
+        return config.ufsCache;
+    }
+
     static String configFile;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //All local disk space related variables.
 
     private long initLocalFree; //Stores free space available in the current working directory at the time of first initialization.
-    /**
-     * Getter for initLocalFree
-     * @return long initLocalFree
-     */
-    public static long getInitLocalFree() {
-        return config.initLocalFree;
-    }
 
     private long localOffered; //stores local disk space offered by the user to the DFS.
     /**
@@ -71,7 +91,6 @@ public class DFSConfig implements Serializable {
      * @return the localOffered
      */
     public long getLocalOffered() { return config.localOffered; }
-
 
     private long localOccupied; //Stores amount of local disk space occupied at the node by DFS as part of the cloud.
 
@@ -132,7 +151,7 @@ public class DFSConfig implements Serializable {
      * Getter for localBalance
      * @return long localBalance
      */
-    public long getLocalBalance() { return config.localBalance; }
+    public long getLocalBalance() { return localBalance; }
 
     /**
      * Setter for long localBalance
@@ -169,7 +188,8 @@ public class DFSConfig implements Serializable {
     public static void setCloudOccupied(long fileSize) {
             config.cloudOccupied = config.cloudOccupied + fileSize;
             boolean flag = config.writeConfig(config);
-            System.out.println("Cloud occupied Updated: " + (config.cloudOccupied / (1024 * 1024)) + "MB");
+            if(flag)
+                System.out.println("Cloud occupied Updated: " + (config.cloudOccupied / (1024 * 1024)) + "MB");
     }
 
     private long cloudAvlb;
@@ -183,7 +203,7 @@ public class DFSConfig implements Serializable {
      * @param  cloudOccupied long cloud occupied file size.
      */
     public static void setCloudAvlb(long cloudOccupied) {
-        boolean flag1 = config.readConfig();
+        boolean flag1 = readConfig();
         if(flag1) {
             config.cloudAvlb = config.cloudAvlb - cloudOccupied;
             boolean flag = config.writeConfig(config);
@@ -203,11 +223,13 @@ public class DFSConfig implements Serializable {
     /**
      * @return the cacheOccupied
      */
-    public static long getCacheOccupied() { return config.cacheOccupied; }
+    public static long getCacheOccupied() { return cacheOccupied; }
 
     public static void setCacheOccupied() {
 
-        File cacheDir = new File(dfsCache);
+        String cache = getDfsCache();
+        System.out.println(cache);
+        File cacheDir = new File(getDfsCache());
         File[] files = cacheDir.listFiles();
         long length = 0;
         int count;
@@ -246,7 +268,7 @@ public class DFSConfig implements Serializable {
         if (config == null) { //if there is no instance available... create new one
             synchronized (DFSConfig.class) {
                 if (config == null) config = new DFSConfig();
-                configFile=System.getProperty("user.dir")+System.getProperty("file.separator")+ "b4dfs"+System.getProperty("file.separator")+ "configFile.txt";
+                configFile=config.getDfsDir()+ "configFile.txt";
                 File configfile = new File(configFile);
                 if(!configfile.exists())
                     config.firstInit();
@@ -298,7 +320,7 @@ public class DFSConfig implements Serializable {
      * Method to read the state variables from the config file.
      * @return flag for success or failure.
      */
-    private boolean readConfig() {
+    private static boolean readConfig() {
         boolean result = false;
         try {
             FileInputStream fis = new FileInputStream(configFile);
@@ -361,10 +383,11 @@ public class DFSConfig implements Serializable {
         //Give user three chances to input correct email ID and local disk space offered.
         int i=0;
         while(i<3) {
-            String mailID = JOptionPane.showInputDialog("Please specify your registered email ID for B4:");
+            String emailID = JOptionPane.showInputDialog("Please specify your registered email ID for B4:");
+            setMailID(emailID);
             String localDisk = JOptionPane.showInputDialog("Please specify local disk to be offered in GB: ");
             //If both inputs are valid, proceed to initialize various variables.
-            if (Util.isValidEmail(mailID) && Util.isValidFloat(localDisk))
+            if (Util.isValidEmail(config.getMailID()) && Util.isValidFloat(localDisk))
             {
                 config.rootInode = "dfs://"+mailID+"/";
                 float localoffered = Float.parseFloat(localDisk)*1024*1024*1024;
@@ -402,16 +425,16 @@ public class DFSConfig implements Serializable {
         config.dfsDir = System.getProperty("user.dir")+System.getProperty("file.separator")+ "b4dfs";
         Path pathDir = Paths.get(config.dfsDir);
 
-        String ufsDir = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4ufs";
+        config.ufsDir = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4ufs";
         Path pathuDir = Paths.get(ufsDir);
 
         config.dfsSrvr = config.dfsDir + System.getProperty("file.separator")+ "dfsSrvr";
         Path pathSrvr = Paths.get(config.dfsSrvr);
 
-        dfsCache = config.dfsDir + System.getProperty("file.separator")+ "dfsCache";
+        config.dfsCache = config.dfsDir + System.getProperty("file.separator")+ "dfsCache";
         Path pathCache = Paths.get(dfsCache);
 
-        String ufsCache = ufsDir + System.getProperty("file.separator") + "ufsCache";
+        config.ufsCache = ufsDir + System.getProperty("file.separator") + "ufsCache";
         Path pathuCache = Paths.get(ufsCache);
 
         Path pathFile = Paths.get(configFile);

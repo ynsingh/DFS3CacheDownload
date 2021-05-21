@@ -1,8 +1,12 @@
 package dfsMgr;
 
 import dfs3Util.TLVParser;
-import dfs3test.communication.Sender;
-import dfs3test.encrypt.*;
+import dfs3test.communication.Sender; // For demo/testing. to be replaced with communication manager post integration with b4mail client.
+import dfs3test.encrypt.*;// For demo/testing. to be replaced with encryption/isec module post integration with b4mail client
+import static dfs3Util.file.*;
+import static dfs3test.encrypt.Encrypt.concat;
+import static dfs3test.encrypt.Hash.hashgenerator;
+import static dfs3test.xmlHandler.XMLWriter.writer;
 import init.DFSConfig;
 
 import java.io.*;
@@ -22,77 +26,66 @@ import dfs3test.xmlHandler.*;
 
 import javax.swing.*;
 
-import static dfs3Util.file.*;
-import static dfs3test.encrypt.Encrypt.concat;
-import static dfs3test.encrypt.Hash.hashgenerator;
-import static dfs3test.xmlHandler.XMLWriter.writer;
-
 /**
- * Class responsible for uploading a File into DFS.
+ * Class responsible for uploading a File into DFS or UFS.
  * This class gets the file selected by user and uploads it
- * into the DFS using DHT
+ * into the DFS/UFS using DHT
  * <p><b>Functions:</b> At the user end of DFS</p>
  * <b>Note:</b> Change this file to change functionality
  * related to the upload function
- * @author <a href="https://t.me/sidharthiitk">Sidharth Patra</a>
- * @since 13th Feb 2020
+ * @author < for DFS2 - a href="https://t.me/sidharthiitk">Sidharth Patra</a>
+ * @author < for DFS3 - Amey Rajeev Hasabnis
+ * @since DFS2 - 13th Feb 2020, DFS3-July 2020
  */
 public class Upload {
+    //static Boolean fBit= Boolean.TRUE; to be integrated with indexing manager after integration for declaring file perpetual/non-perpetual
     /**
-     * Starts the upload process
-     * <p> This method executes all the functions related to uploading
-     * of a file like Encryption, hashing, segmentation and indexing</p>
      *
-     * //@throws NullPointerException     Incase user invokes the method but doesn't upload anything
-     * //@throws IOException              for input output exception
-     * //@throws GeneralSecurityException In case of general security violation occurs
+     * @param isDFS variable indicating file is being uploaded to DFS or UFS.
+     * @return boolean flag indicating success/failure of the uploading of a file.
+     * @throws NullPointerException in case of null pointer
+     * @throws IOException in case of IO error
+     * @throws GeneralSecurityException in case of security exception
      */
-
-    // get path of the selected file
-    static String path;
-    static Path path1;
-    static String fileName;
-    public static String fileURI;
-    public static Boolean fBit= Boolean.TRUE;
-    static String fileSuffix;
-    static long fileSize;
-
     public static boolean start(boolean isDFS) throws NullPointerException, IOException,
             GeneralSecurityException {
-
-        path=readpath();
-        JDialog dialog = new JDialog();
+        //Ask user to choose a file through JFileChooser GUI.
+        String path = readpath();
+        //Display wait dialogue box.
+        JDialog dialog = new JDialog(); //for demo/testing. To be replaced with GUI once developed.
         JLabel label = new JLabel("Uploading. Please wait...");
         dialog.setLocationRelativeTo(null);
         dialog.setTitle("Uploading. Please Wait...");
         dialog.add(label);
         dialog.pack();
         dialog.setVisible(true);
-        path1= Paths.get(path);
-        fileName = path1.getFileName().toString();
-        fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-        fileURI = DFSConfig.getRootInode() + fileName+ "@@" + fileSuffix ;
-        fileSize = Util.checkFileSize(path);
-        //check whether adequate space is available in the user cloud
+        Path path1 = Paths.get(path);
+        String fileName = path1.getFileName().toString();
+        //fileSuffix appends timestamp to a file.
+        String fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String fileWithTimeStamp = fileName+"@@"+fileSuffix;
+        /*fileURI is the unique URI of a file in name space of P2P network.
+        e.g. for DFS -> dfs://ameyrh@iitk.ac.in/abc.pdf@@20210520150655
+        e.g. for UFS -> abc.pdf@@20210520150655*/
+        String fileURI = DFSConfig.getRootInode() + fileWithTimeStamp;
+        long fileSize = Util.checkFileSize(path);
+        //check whether adequate space is available in the user DFS cloud or it is a UFS upload.
         try {
             long cloudAvlb = DFSConfig.getCloudAvlb();
-            if (cloudAvlb > fileSize|| !isDFS) {
-                //System.out.println("Cloud space available is:" + (cloudAvlb / (1024 * 1024 * 1024)) + "GB");
-                System.out.println("File Size is: " + (fileSize / (1024 * 1024)) + "MB");
+            if (cloudAvlb > fileSize || !isDFS) {
+                //System.out.println("File Size is: " + (fileSize / (1024 * 1024)) + "MB");
                 System.out.println("File can be uploaded");
-                //reading file using FileChannel and ByteBuffer
+                //Read file using FileChannel and ByteBuffer
                 RandomAccessFile randomAccessFile = new RandomAccessFile(path, "r");
                 ByteBuffer encData;
                 try (FileChannel channel = randomAccessFile.getChannel()) {
-                    ByteBuffer byteBuffer = ByteBuffer.allocate((int) channel.size());//alocate new ByteBuffer of size of file
-                    //byteBuffer.put(bytes);
+                    ByteBuffer byteBuffer = ByteBuffer.allocate((int) channel.size());//allocate new ByteBuffer of size of file
                     long bufferSize = channel.size();
                     ByteBuffer buff = ByteBuffer.allocate((int) bufferSize);
                     channel.read(buff);
                     buff.flip();
                     byte[] plainData = buff.array();
                     byteBuffer.flip();
-                    //channel.write(byteBuffer);
                     randomAccessFile.close();
                     channel.close();
                     //Encrypt the file and key and combine both using TLV framing for DFS
@@ -101,6 +94,7 @@ public class Upload {
                         filePlusKey = Encrypt.startEnc(plainData);
                         System.out.println("file encrypted successfully!");
                     }
+                    //Append hash of file in front of the file data - to be used to verify file integrity post download.
                     else {
                         String fileHash=hashgenerator(plainData);
                         byte [] hashByteArray=fileHash.getBytes();
@@ -110,46 +104,44 @@ public class Upload {
                     }
                     encData = ByteBuffer.wrap(filePlusKey);
                     //send the file for segmentation
-                    Segmentation.start(encData, path, isDFS);
+                    Segmentation.start(encData, path, isDFS, fileWithTimeStamp);
                     System.out.println("file segmented successfully!");
                     //write inode for the file being uploaded
-                    InodeWriter.writeInode(Segmentation.nameOfFile, fileSize, Segmentation.index, isDFS);
+                    InodeWriter.writeInode(fileWithTimeStamp, fileSize, Segmentation.index, isDFS);
                 }
                 //Retrieve the segments and upload them one by one
-                String splitFile = null;
+                String splitFile;
                 if(isDFS)
-                splitFile = System.getProperty("user.dir") +
-                        System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + Segmentation.nameOfFile +"_Inode.csv";
+                    splitFile = DFSConfig.getDfsCache() + fileWithTimeStamp +"_Inode.csv";
                 else
-                    splitFile = System.getProperty("user.dir") +
-                            System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator") + Segmentation.nameOfFile +"_Inode.csv";
+                    splitFile = DFSConfig.getUfsCache() + fileWithTimeStamp +"_Inode.csv";
 
                 String[] segmentInode = csvreader(splitFile, path);
                 for (int i = 0; i < segmentInode.length && !(segmentInode[i] == null); i++) {
                     dispatch(segmentInode[i], i, isDFS);
                 }
-                boolean flag = dfs3Util.file.deleteFile(splitFile);
+                dfs3Util.file.deleteFile(splitFile);
                 //Now uploading the inode of the file
-                String inode = null;
+                String inode;
                 if(isDFS)
-                    inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ Segmentation.nameOfFile + "_Inode.xml";
+                    inode =  DFSConfig.getDfsCache()+fileWithTimeStamp + "_Inode.xml";
                 else
-                    inode = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ Segmentation.nameOfFile + "_Inode.xml";
+                    inode = DFSConfig.getUfsCache()+ fileWithTimeStamp + "_Inode.xml";
                 dispatch(inode, 0, isDFS);
                 //Now uploading the updated root directory in the cloud
-                String rootDir=null;
+                String rootDir;
                 if(isDFS)
-                    rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ "DFSuploaded.csv";
+                    rootDir = DFSConfig.getDfsCache()+ "DFSuploaded.csv";
                 else
-                    rootDir = System.getProperty("user.dir") + System.getProperty("file.separator") +"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ "UFSuploaded.csv";
-                String hashofFile=hashgenerator(encData.array());
+                    rootDir = DFSConfig.getUfsCache()+ "UFSuploaded.csv";
+                String hashOfFile =hashgenerator(encData.array());
                 if(isDFS) {
-                    index(fileURI, hashofFile, isDFS);
+                    index(fileURI, hashOfFile, true);
                 }
                 else
                 {
-                    String file=fileName+"@@"+fileSuffix;
-                    index(file, hashofFile, isDFS);
+                    String file= fileName +"@@"+fileSuffix;
+                    index(file, hashOfFile, false);
                 }
                 dispatch(rootDir, 0, isDFS);
                 System.out.println("Updated root directory uploaded.");
@@ -168,104 +160,109 @@ public class Upload {
             }
         }
 
-     catch (IOException e) {
+        catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-         dialog.setVisible(false);
+            dialog.setVisible(false);
             return false;
         }
 
     }//end of start
+
+    /**
+     * This functions dispatches the file/segment into the cloud.
+     * @param segmentInode segment inode name
+     * @param i segment number
+     * @param isDFS indicates whether DFS or UFS
+     * @throws NoSuchAlgorithmException in case of encryption/hashing algorithm error
+     * @throws IOException in case of IO exception
+     * @throws InvalidKeySpecException in case of key error
+     * @throws InvalidKeyException in case of key error
+     * @throws SignatureException in case of signature error
+     */
     private static void dispatch(String segmentInode, int i, boolean isDFS) throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+        //read data of the segment
         byte[] segmentData = readdata(segmentInode);
-        //Delete the segments once the data is read into byte array
-        File f=new File(segmentInode);
-        //f.delete();
         //extract segment name from the inode
+        File f=new File(segmentInode);
         String segmentName = f.getName();
         //insert sequence number into the segment
         byte[] segmentData1 = TLVParser.startFraming(segmentData, i + 1);
         //insert tag to identify the segment as already sequenced
         byte[] segmentData2 = TLVParser.startFraming(segmentData1, 4);
         //Generate the inode of segment and compute the hash of the same
-        String hashedInode = null;
+        String hashedInode;
         if(isDFS)
             hashedInode = Hash.hashpath(DFSConfig.getRootInode() + segmentName);
         else
-            if(segmentName.equals("UFSuploaded.csv")) {
-                String dfsID = DFSConfig.getRootInode();
-                String uploadInode = dfsID.split("/")[2]+"/"+segmentName;
-                hashedInode = Hash.hashpath(uploadInode);
-            }
-                else
-                hashedInode = Hash.hashpath(segmentName);
+        if(segmentName.equals("UFSuploaded.csv")) {
+            //String dfsID = DFSConfig.getRootInode();
+            String uploadInode = DFSConfig.getMailID()+"/"+segmentName;
+            hashedInode = Hash.hashpath(uploadInode);
+        }
+        else
+            hashedInode = Hash.hashpath(segmentName);
 
         System.out.println("Hash of segment URL: "+hashedInode);
         //compute the hash of segment
-        String hashofSegment = hashgenerator(segmentData2);
+        String hashOfSegment = hashgenerator(segmentData2);
         //Sign the hash
-        byte[] signedHash = GenerateKeys.signHash(hashofSegment.getBytes());
+        byte[] signedHash = GenerateKeys.signHash(hashOfSegment.getBytes());
         //get the file ready to transmit after adding signed hash into the segment
         byte[] fileTx = concat(signedHash, segmentData2);// combine the file,key and hash of Inode
         // Write the XML query. Tag for upload is 1
         String[] inodeCheck = segmentName.split("_");
         int l = inodeCheck.length;
-        String xmlPath=null;
-        if(inodeCheck[l-1]=="Inode.xml")
+        String xmlPath;
+        if(inodeCheck[l-1].equals("Inode.xml"))
             xmlPath = writer(1, hashedInode, fileTx, true);
         else
             xmlPath = writer(1, hashedInode, fileTx, false);
-
         // handover the xml query to xmlSender (token for upload is 1)
         // TODO - query the dht and get the IP
         Sender.start(xmlPath, "localhost");
-        boolean flag = dfs3Util.file.deleteFile(xmlPath);
-
-        System.out.println("Uploading Segment No " + (i + 1));
+        //Delete the xml file created for transmitting.
+        dfs3Util.file.deleteFile(xmlPath);
     }
 }
+
+/**
+ * This class is responsible for segmentation of a file into chunk size of 512kB (configurable)
+ */
 class Segmentation {
 
-    // the variable that get the current directory
-    private static final String dfsDir = System.getProperty("user.dir") +
-            System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator");
-    private static final String ufsDir = System.getProperty("user.dir") +
-            System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator");
-    // suffix splitpart is writen as part of file name
-    // for the programmer to under stand that its a segment of original file
-    private static final String suffix = ".splitPart";
-    static String iNode = null;
-    static String nameOfFile;
+    //Hashmap that stores key and values corresponding to segments.
     static HashMap<String, String> index=new HashMap<>();
 
-    public static void start(ByteBuffer encData, String path, boolean isDFS) throws IOException {
-        //new File(dir+"upload").mkdir();
-        // Create a path where the byte array filepluskey will be  written for
-        // performing segmentation.
-        // the addition of DFS2 ensures the existing file is not overwritten
-        String writePath = System.getProperty("user.dir") +
-                System.getProperty("file.separator") + "DFS3" + System.getProperty("file.separator");
+    /**
+     * This method creates a temporary copy of encrypted file plus key to work with and sends directories to splitFile function.
+     * @param encData byte array of encrypted file plus key
+     * @param path path of the file to be uploaded.
+     * @param isDFS indicator whether DFS or UFS
+     * @param fileWithTimeStamp name of file with timstamp of upload.
+     * @throws IOException in case of IO exception.
+     */
+    public static void start(ByteBuffer encData, String path, boolean isDFS, String fileWithTimeStamp) throws IOException {
+
+        /* Create a path where the byte array filePlusKey will be  written for performing segmentation.
+        the addition of DFS3 ensures the existing file is not overwritten */
+        String writePath = System.getProperty("user.dir") + System.getProperty("file.separator") + "DFS3";
         writeData(encData.array(), writePath);
-        // call the method splitFile with original path which is used for indexing
-        // temporary path writePath from where the segmentation will take place
-        // and size of each segment in KB
-        splitFile(path, writePath, 512, isDFS);
+        /* call the method splitFile with original path which is used for indexing
+         temporary path writePath from where the segmentation will take place
+         and size of each segment in KB */
+        splitFile(path, writePath, 512, isDFS, fileWithTimeStamp);
     }
 
     /**
      * Split a file into multiples files.
-     *  @param tempPath   Name of file to be split.
+     * @param tempPath   Name of file to be split.
      * @param kbPerSplit number of kilo bytes per chunk.
-     * @param isDFS
+     * @param isDFS variable indicating file is being uploaded to DFS or UFS.
+     * @param fileWithTimeStamp file name with appended time stamp
      */
-    public static void splitFile(String inode, final String tempPath, final int kbPerSplit, boolean isDFS) throws IOException {
+    public static void splitFile(String inode, final String tempPath, final int kbPerSplit, boolean isDFS, String fileWithTimeStamp) throws IOException {
 
-        File f;
-        f = new File(inode);
-        // get name of the file containing file plus key from the disk
-        nameOfFile = f.getName()+"@@"+Upload.fileSuffix;
-        // get the inode
-        iNode = inode;
         // enforce condition for the chunk size to be more than 0
         if (kbPerSplit <= 0)
             throw new IllegalArgumentException("chunkSize must be more than zero");
@@ -282,43 +279,55 @@ class Segmentation {
         int position = 0;
         // create a file channel and access the file in read mode
         try {
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(tempPath));
-            //FileChannel sourceChannel = sourceFile.getChannel()) {
+            FileInputStream fis = new FileInputStream(tempPath);
+            BufferedInputStream bis = new BufferedInputStream(fis);
             // the loop traverses the channel using position
             // position is multiplied with number of bytes per segment every time
             for (; position < numSplits; position++) {
                 //write the content to different segments
-                writePartToFile(bytesPerSplit, position * bytesPerSplit, bis, partFiles, isDFS);
+                writePartToFile(bytesPerSplit, position * bytesPerSplit, bis, partFiles, isDFS, fileWithTimeStamp, inode);
                 // if some bytes are remaining after the whole division
                 // write them as well to the segments
             }
             if (remainingBytes > 0)
-                writePartToFile(remainingBytes, position * bytesPerSplit, bis, partFiles, isDFS);
+                writePartToFile(remainingBytes, position * bytesPerSplit, bis, partFiles, isDFS, fileWithTimeStamp, inode);
+            fis.close();
+            //Delete the temporary encrypted file
+            dfs3Util.file.deleteFile(tempPath);
+            //return partFiles;
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
-            //Delete the temporary encrypted file
-            f = new File(tempPath);
-            f.delete();
-            //return partFiles;
-
         }
     }
 
     // this method makes the segment to be written to the disk
     // it receives the channel and traverses the channel
-    // writes the segments with unique name ( name of file followed by suffix .splitpart
-    // followed by an integer) example xyz.splitpart.1
+    // writes the segments with unique name ( name of file followed by suffix .splitPart
+    // followed by an integer) example xyz.splitPart.1
+
+    /**
+     * This method writes each segment/chunk to the local disk.
+     * @param byteSize Size of chunk in bytes to be written.
+     * @param position buffer position.
+     * @param bis buffered input stream of the segment data.
+     * @param partFiles List of file segments.
+     * @param isDFS Indicator whether DFS or UFS.
+     * @param fileWithTimeStamp File name with time stamp of upload.
+     * @param inode Original path of the file.
+     * @throws IOException in case of IO error.
+     * @throws NoSuchAlgorithmException In case of algorithm error.
+     */
     private static void writePartToFile(long byteSize, long position, BufferedInputStream bis,
-                                        List<Path> partFiles, boolean isDFS) throws IOException, NoSuchAlgorithmException {
-        // path for the segment current directory followed by the inode followedby .splitpart
+                                        List<Path> partFiles, boolean isDFS, String fileWithTimeStamp, String inode) throws IOException, NoSuchAlgorithmException {
+        // path for the segment current directory followed by the inode followed by .splitPart
         // followed by the segment number
-        Path segmentName = null;
+        Path segmentName;
+        String suffix = ".splitPart";
         if(isDFS)
-        segmentName = Paths.get(dfsDir + nameOfFile + suffix + (int) ((position / (512 * 1024)) + 1));//TODO - replace the UUID with Integer.toString((position/512) - 1))
+            segmentName = Paths.get(DFSConfig.getDfsCache() + fileWithTimeStamp + suffix + (int) ((position / (512 * 1024)) + 1));//TODO - replace the UUID with Integer.toString((position/512) - 1))
         else
-            segmentName = Paths.get(ufsDir + nameOfFile + suffix + (int) ((position / (512 * 1024)) + 1));
+            segmentName = Paths.get(DFSConfig.getUfsCache() + fileWithTimeStamp + suffix + (int) ((position / (512 * 1024)) + 1));
         try {
-            //RandomAccessFile tofile = new RandomAccessFile(segmentName.toString(),"rw");
             try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream (segmentName.toString()))) {
 
                 byte[] buf = new byte[(int) byteSize];
@@ -326,12 +335,8 @@ class Segmentation {
                 if(val!=-1) {
                     bos.write(buf, 0, val);
                 }
-                //FileChannel toChannel = toFile.getChannel()) {
-                //sourceChannel.position(position);
-                //toChannel.transferFrom(sourceChannel, 0, byteSize);
             } catch (IOException e) {
                 e.printStackTrace();
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -340,46 +345,46 @@ class Segmentation {
         partFiles.add(segmentName);
 
         // create index of the segments created with inode as the primary key
-        splitIndex(iNode, segmentName.toString(), isDFS);
+        splitIndex(inode, segmentName.toString(), isDFS, fileWithTimeStamp);
     }
 
-
-
-
     /**
-     * Split a file into multiples files.
-     *  @param inode Name of file to be split.
-     * @param segmentName number of kilo bytes per chunk.
-     * @param isDFS
+     * Method that generates a hash map of segment name and corresponding hash value and stores into a csv file.
+     * @param inode Name of file to be split.
+     * @param segmentName Name of a segment.
+     * @param isDFS variable indicating file is being uploaded to DFS or UFS.
+     * @param fileWithTimeStamp file name with appended time stamp.
      */
-    public static void splitIndex(String inode, String segmentName, boolean isDFS) throws IOException, NoSuchAlgorithmException {
+    public static void splitIndex(String inode, String segmentName, boolean isDFS, String fileWithTimeStamp) throws IOException, NoSuchAlgorithmException {
 
         Path segmentPath = Path.of(segmentName);
         String nameOfSegment = segmentPath.getFileName().toString();
         byte[] segmentData = readdata(segmentName);
         String hashOfSegment = dfs3test.encrypt.Hash.hashgenerator(segmentData);
         index.put(nameOfSegment, hashOfSegment);
+        //noinspection ResultOfMethodCallIgnored
         index.entrySet().toArray();
         HashMap<String, String> csvIndex = new HashMap<>();
         //Put elements to the map
         csvIndex.put(inode, segmentName);// Put elements to the map
-        String fileName = inode + "_inode.csv";
         // Write CSV
-        String uploadPath = null;
+        String uploadPath;
         if(isDFS)
-        uploadPath = System.getProperty("user.dir") +
-                System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ nameOfFile + "_Inode.csv";
+            uploadPath = System.getProperty("user.dir") +
+                    System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator")+ fileWithTimeStamp + "_Inode.csv";
         else
             uploadPath = System.getProperty("user.dir") +
-                    System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ nameOfFile + "_Inode.csv";
+                    System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator")+ fileWithTimeStamp + "_Inode.csv";
         try {
             // true is for appending and false is for over writing
             FileWriter writer = new FileWriter(uploadPath, true);
-            Set set = csvIndex.entrySet();
+            Set<Map.Entry<String, String>> set = csvIndex.entrySet();
             // Get an iterator for entering the data from hash map
             // to csv file
             for (Object o : set) {
-                Map.Entry firstEntry = (Map.Entry) o;
+                @SuppressWarnings("rawtypes") Map.Entry firstEntry;
+                //noinspection rawtypes
+                firstEntry = (Map.Entry) o;
                 // write the key
                 writer.write(firstEntry.getKey().toString());
                 // write the comma
