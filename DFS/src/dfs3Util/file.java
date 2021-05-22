@@ -301,10 +301,10 @@ public class file {
         Path filePath = Paths.get(fileName);
         try {
             boolean flag = Files.deleteIfExists(filePath);
-            if(flag)
+            /*if(flag)
                 System.out.println("temp file deleted");
             else
-                System.out.println("temp file not deleted");
+                System.out.println("temp file not deleted"); */
             return flag;
         } catch (IOException e) {
             e.printStackTrace();

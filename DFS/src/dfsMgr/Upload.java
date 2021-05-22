@@ -33,8 +33,8 @@ import javax.swing.*;
  * <p><b>Functions:</b> At the user end of DFS</p>
  * <b>Note:</b> Change this file to change functionality
  * related to the upload function
- * @author < for DFS2 - a href="https://t.me/sidharthiitk">Sidharth Patra</a>
- * @author < for DFS3 - Amey Rajeev Hasabnis
+ * @author  for DFS2 - Sidharth Patra
+ * @author  for DFS3 - Amey Rajeev Hasabnis
  * @since DFS2 - 13th Feb 2020, DFS3-July 2020
  */
 public class Upload {
@@ -136,12 +136,12 @@ public class Upload {
                     rootDir = DFSConfig.getUfsCache()+ "UFSuploaded.csv";
                 String hashOfFile =hashgenerator(encData.array());
                 if(isDFS) {
-                    index(fileURI, hashOfFile, true);
+                    index(fileURI, hashOfFile, true); // For demo/testing. To be integrated with Indexing manager.
                 }
                 else
                 {
                     String file= fileName +"@@"+fileSuffix;
-                    index(file, hashOfFile, false);
+                    index(file, hashOfFile, false); // For demo/testing. To be integrated with Indexing manager.
                 }
                 dispatch(rootDir, 0, isDFS);
                 System.out.println("Updated root directory uploaded.");
