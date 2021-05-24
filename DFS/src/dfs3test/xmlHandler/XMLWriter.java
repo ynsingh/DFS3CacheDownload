@@ -12,7 +12,7 @@ import java.io.IOException;
 public class XMLWriter {
     // Write the XML using StAX CURSOR API
     public static String writer(int tag, String hashInode,byte[] data, boolean isInode) throws IOException {
-        String xmlFileName = hashInode+".xml";
+        String xmlFileName = hashInode+"xml";
         //List<Query> queryList = new ArrayList<>();
         //queryList.add(new query(attributes to be passed));
         WriteObject query = new WriteObject(tag,hashInode,data, isInode);

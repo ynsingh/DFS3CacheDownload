@@ -36,9 +36,12 @@ public class Receiver {
                     System.out.println("Can't get socket input stream.");
                 }
                 String fileName = getName();
+                File file = new File(fileName);
+                file.createNewFile();
                 try {
                     out = new FileOutputStream(fileName);
                 } catch (FileNotFoundException ex) {
+                    ex.printStackTrace();
                     System.out.println("File not found.");
                 }
 
@@ -49,6 +52,8 @@ public class Receiver {
                 }
                 out.close();
                 in.close();
+                File f = new File(fileName);
+                System.out.println(f.length());
                 XMLReader.reader(fileName);
             }
             else

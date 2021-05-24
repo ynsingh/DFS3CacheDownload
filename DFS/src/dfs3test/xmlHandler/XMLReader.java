@@ -7,7 +7,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -25,17 +24,21 @@ public class XMLReader {
 
     private static boolean hash;
     // this method parses the xml using StAX CURSOR API
-    public static void reader(String path) {
-        String fileName = path;
+    public static void reader(String path) throws IOException {
+        System.out.println(path);
         List<ReadObject> queryList = new ArrayList<>();
         ReadObject query = null;
         // Initialise Input factory
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(path);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
-            FileInputStream fis = new FileInputStream(fileName);
             // Initialise a stream reader with fileName
-            XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader
-                    (fis);
+            XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(fis);
             // Each event is identified with a integer value
             int event = xmlStreamReader.getEventType();
             // till there is a next event the loop will continue
@@ -81,12 +84,11 @@ public class XMLReader {
                 // needed thats why the query list is there
                 event = xmlStreamReader.next();
             }
-            fis.close();
-        } catch (FileNotFoundException | XMLStreamException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+
+        } catch (XMLStreamException e) {
             e.printStackTrace();
         }
+        fis.close();
         // reading individual fields from the object query
         byte[] decoded = new byte[0];
         String inode = null;
@@ -114,7 +116,7 @@ public class XMLReader {
         if(id == 1)
         try {
             Store.start(decoded,inode);
-            dfs3Util.file.deleteFile(fileName);
+            dfs3Util.file.deleteFile(path);
         } catch (IOException | InvalidKeyException | InvalidKeySpecException
                 | SignatureException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -123,14 +125,14 @@ public class XMLReader {
         else if(id == 2)
             try {
                 Locate.start(inode,new String(decoded));
-                dfs3Util.file.deleteFile(fileName);
+                dfs3Util.file.deleteFile(path);
             } catch (IOException | GeneralSecurityException | XMLStreamException e) {
                 e.printStackTrace();
             }
         // if id is 3 query message from delete call erase
         else if(id == 3) {
             Erase.start(inode);
-            dfs3Util.file.deleteFile(fileName);
+            dfs3Util.file.deleteFile(path);
         }
         // if id is 20  response message from Locate call download
         /*else if(id == 20 && isInode) {
@@ -141,7 +143,7 @@ public class XMLReader {
         else if(id == 20) //&& !isInode)
             try {
                 Dfs3Download.segmentDownload(decoded);
-                dfs3Util.file.deleteFile(fileName);
+                dfs3Util.file.deleteFile(path);
 
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();
@@ -150,7 +152,7 @@ public class XMLReader {
         else if(id == 4)
             try {
                 Replicate.start(decoded,inode);
-                dfs3Util.file.deleteFile(fileName);
+                dfs3Util.file.deleteFile(path);
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();
             }

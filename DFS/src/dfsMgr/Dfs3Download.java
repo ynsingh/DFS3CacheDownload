@@ -139,11 +139,11 @@ public class Dfs3Download{
                     xmlPath = writer(2, hashedInode, "Nothing".getBytes(), false);
                 else
                     xmlPath = writer(2, hashedInode, "Nothing".getBytes(), true);
-
+                System.out.println("xmlPath: "+xmlPath);
                 // TODO - retrieve the Ip of the node responsible
                 // hand over the xml query to xmlSender
                 Sender.start(xmlPath, "localhost");
-                dfs3Util.file.deleteFile(xmlPath);
+                //dfs3Util.file.deleteFile(xmlPath);
             }
         }
     }//end of start
