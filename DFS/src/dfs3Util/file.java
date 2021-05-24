@@ -160,9 +160,9 @@ public class file {
         String fileName1 = "DFSuploaded.csv";
         String fileName2 = "UFSuploaded.csv";
         /* Write CSV */
-        String uploadPath = null;
+        String uploadPath ;
         if(isDFS)
-                uploadPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4dfs" + System.getProperty("file.separator")+ "dfsCache"+System.getProperty("file.separator")+fileName1;
+            uploadPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4dfs" + System.getProperty("file.separator")+ "dfsCache"+System.getProperty("file.separator")+fileName1;
         else
             uploadPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4ufs" + System.getProperty("file.separator")+ "ufsCache"+System.getProperty("file.separator")+fileName2;
 

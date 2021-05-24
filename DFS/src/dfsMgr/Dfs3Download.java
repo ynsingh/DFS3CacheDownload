@@ -39,7 +39,7 @@ import java.util.*;
 public class Dfs3Download{
     static String fileName = null;
     static int segmentCount = 0;
-    static TreeMap<String, String> splits= null;
+    static TreeMap<String, String> splits= new TreeMap<>();
     static String fileURI=null;
     static boolean isDFS;
     static JDialog dialog = new JDialog();
@@ -199,6 +199,7 @@ public class Dfs3Download{
         else
             JOptionPane.showMessageDialog(frame,"Download failed!","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
         segmentCount=0;
+        splits.clear();
     }
 
     /**
@@ -209,7 +210,7 @@ public class Dfs3Download{
      */
     private static boolean dfsDownload(String fileURI, byte[] completefile) {
         // compare the hash of completefile with the original filepluskey
-        System.out.println("fileURI in dfsDownload: "+ fileURI);
+        System.out.println("size of file plus key: "+ completefile.length);
         boolean hashMatch = comparehash(fileURI,completefile, isDFS);
         // retrieve data, decrypt data after decrypting key
         // write the file on decrypting data

@@ -63,6 +63,7 @@ public class Encrypt {
             keypair = keys.GenerateKeyPair("RSA",1024);
             // write the keypair to disk
             writekeys(keypair);
+            publickey = getPublic();
         }
         // convert symmetric key to byte array
         byte[] byteKey = symKey.getEncoded();

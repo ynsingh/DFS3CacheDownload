@@ -20,8 +20,9 @@ public class InodeWriter {
                 inode = System.getProperty("user.dir") +
                         System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
             System.out.println(inode);
+            FileOutputStream fos = new FileOutputStream(inode);
             XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newFactory();
-            XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(inode));
+            XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(fos);
             xMLStreamWriter.writeStartDocument("1.0");
             //start inode
             xMLStreamWriter.writeStartElement("inode");
@@ -100,6 +101,8 @@ public class InodeWriter {
             xMLStreamWriter.writeEndElement();
             xMLStreamWriter.flush();
             xMLStreamWriter.close();
+            fos.flush();
+            fos.close();
 
     } catch(Exception e){
         System.out.println(e.getMessage());

@@ -39,6 +39,7 @@ import javax.swing.*;
  */
 public class Upload {
     //static Boolean fBit= Boolean.TRUE; to be integrated with indexing manager after integration for declaring file perpetual/non-perpetual
+    static HashMap<String, String> index=new HashMap<>();
     /**
      *
      * @param isDFS variable indicating file is being uploaded to DFS or UFS.
@@ -107,7 +108,7 @@ public class Upload {
                     Segmentation.start(encData, path, isDFS, fileWithTimeStamp);
                     System.out.println("file segmented successfully!");
                     //write inode for the file being uploaded
-                    InodeWriter.writeInode(fileWithTimeStamp, fileSize, Segmentation.index, isDFS);
+                    InodeWriter.writeInode(fileWithTimeStamp, fileSize, index, isDFS);
                 }
                 //Retrieve the segments and upload them one by one
                 String splitFile;
@@ -152,10 +153,12 @@ public class Upload {
                 else
                     System.out.println("File Successfully uploaded in UFS");
                 dialog.setVisible(false);
+                index.clear();
                 return true;
             }
             else {
                 dialog.setVisible(false);
+                index.clear();
                 return false;
             }
         }
@@ -232,7 +235,6 @@ public class Upload {
 class Segmentation {
 
     //Hashmap that stores key and values corresponding to segments.
-    static HashMap<String, String> index=new HashMap<>();
 
     /**
      * This method creates a temporary copy of encrypted file plus key to work with and sends directories to splitFile function.
@@ -361,9 +363,9 @@ class Segmentation {
         String nameOfSegment = segmentPath.getFileName().toString();
         byte[] segmentData = readdata(segmentName);
         String hashOfSegment = dfs3test.encrypt.Hash.hashgenerator(segmentData);
-        index.put(nameOfSegment, hashOfSegment);
+        Upload.index.put(nameOfSegment, hashOfSegment);
         //noinspection ResultOfMethodCallIgnored
-        index.entrySet().toArray();
+        Upload.index.entrySet().toArray();
         HashMap<String, String> csvIndex = new HashMap<>();
         //Put elements to the map
         csvIndex.put(inode, segmentName);// Put elements to the map
