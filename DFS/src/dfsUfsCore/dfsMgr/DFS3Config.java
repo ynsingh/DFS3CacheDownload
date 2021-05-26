@@ -203,8 +203,6 @@ public class DFS3Config implements Serializable {
      * @param  cloudOccupied long cloud occupied file size.
      */
     public static void setCloudAvlb(long cloudOccupied) {
-        boolean flag1 = readConfig();
-        if(flag1) {
             config.cloudAvlb = config.cloudAvlb - cloudOccupied;
             boolean flag = config.writeConfig(config);
             if (flag)
@@ -212,7 +210,7 @@ public class DFS3Config implements Serializable {
             else
                 System.out.println("Cloud Available update filed");
         }
-    }
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // All local cache related variables.

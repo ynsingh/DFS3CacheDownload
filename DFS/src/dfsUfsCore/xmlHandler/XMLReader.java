@@ -6,6 +6,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,14 +24,13 @@ public class XMLReader {
 
     private static boolean hash;
     // this method parses the xml using StAX CURSOR API
-    public static void reader(String path) throws IOException {
-        System.out.println(path);
+    public static void reader(File xmlFile) throws IOException {
         List<ReadObject> queryList = new ArrayList<>();
         ReadObject query = null;
         // Initialise Input factory
         FileInputStream fis = null;
         try {
-            fis = new FileInputStream(path);
+            fis = new FileInputStream(xmlFile);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -115,7 +115,7 @@ public class XMLReader {
         if(id == 1)
         try {
             Store.start(decoded,inode);
-            dfsUfsCore.dfs3Util.file.deleteFile(path);
+            dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
         } catch (IOException | InvalidKeyException | InvalidKeySpecException
                 | SignatureException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -124,7 +124,7 @@ public class XMLReader {
         else if(id == 2)
             try {
                 Locate.start(inode,new String(decoded));
-                dfsUfsCore.dfs3Util.file.deleteFile(path);
+                dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
             } catch (IOException | GeneralSecurityException | XMLStreamException e) {
                 e.printStackTrace();
             }
@@ -133,7 +133,7 @@ public class XMLReader {
         else if(id == 20)
             try {
                 Dfs3Download.segmentDownload(decoded);
-                dfsUfsCore.dfs3Util.file.deleteFile(path);
+                dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
 
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();

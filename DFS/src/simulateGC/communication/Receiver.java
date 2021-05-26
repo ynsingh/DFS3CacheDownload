@@ -1,5 +1,6 @@
 package simulateGC.communication;
 
+import dfsUfsCore.dfsMgr.DFS3BufferMgr;
 import dfsUfsCore.xmlHandler.XMLReader;
 
 import java.io.*;
@@ -10,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 public class Receiver {
+    public static DFS3BufferMgr inputbuffer = DFS3BufferMgr.getInstance();
     public static void start() throws IOException {
         ServerSocket serverSocket = null;
 
@@ -52,8 +54,8 @@ public class Receiver {
                 }
                 out.close();
                 in.close();
-                File f = new File(fileName);
-                XMLReader.reader(fileName);
+                inputbuffer.addToInputBuffer(new File(fileName));
+                XMLReader.reader(inputbuffer.fetchFromInputBuffer());
             }
             else
                 break;

@@ -393,7 +393,6 @@ public class Dfs3Download{
                 DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
                 // TODO - query the dht and get the IP
                 Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-                Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
                 dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
             }
         }
