@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="DFS3CacheDownload:jar2">
+    <output-path>$USER_HOME$/Desktop/MyJarTest</output-path>
+    <root id="archive" name="DFS3CacheDownload.jar">
+      <element id="module-output" name="DFS3CacheDownload" />
+    </root>
+  </artifact>
+</component>
