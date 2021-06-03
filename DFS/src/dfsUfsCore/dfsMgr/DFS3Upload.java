@@ -98,9 +98,10 @@ public class DFS3Upload {
                     else {
                         String fileHash=hashgenerator(plainData);
                         byte [] hashByteArray=fileHash.getBytes();
-                        filePlusKey = concat(hashByteArray,plainData);
-                        System.out.println("Hash length: "+hashByteArray.length);
-                        System.out.println("Hash: "+fileHash);
+                        byte[] signedHash = GenerateKeys.signHash(hashByteArray);
+                        filePlusKey = concat(signedHash,plainData);
+                        System.out.println("Signed Hash length: "+signedHash.length);
+                        System.out.println("Signed Hash: "+fileHash);
                     }
                     encData = ByteBuffer.wrap(filePlusKey);
                     //send the file for segmentation
@@ -109,7 +110,7 @@ public class DFS3Upload {
                     //write inode for the file being uploaded
                     InodeWriter.writeInode(fileWithTimeStamp, fileSize, index, isDFS);
                 }
-                //Retrieve the segments and upload them one by one
+                //Read  the segments from index and upload them one by one
                 String splitFile;
                 if(isDFS)
                     splitFile = DFS3Config.getDfsCache() + fileWithTimeStamp +"_Inode.csv";

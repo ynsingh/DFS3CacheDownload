@@ -3,6 +3,7 @@ package dfsUfsCore.dfsMgr;
 import simulateGC.communication.Sender; // Demo/testing. TO be integrated with Communication Manager.
 import dfsUfsCore.dfs3Util.TLVParser;
 import simulateGC.encrypt.Encrypt; // Demo/testing. TO be integrated with isec/encryption Manager.
+import simulateGC.encrypt.GenerateKeys;
 import simulateGC.encrypt.Hash; //Demo/testing. TO be integrated with isec/encryption Manager
 import dfsUfsCore.xmlHandler.InodeReader;
 import dfsUfsCore.xmlHandler.ReadInode;
@@ -23,8 +24,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 /**
@@ -42,7 +43,9 @@ public class Dfs3Download{
     static TreeMap<String, String> splits= new TreeMap<>();
     static String fileURI=null;
     static boolean isDFS;
+    static PublicKey pubKey;
     static JDialog dialog = new JDialog();
+
 
     /**
      * This method starts the download of the file from DFS.
@@ -109,14 +112,15 @@ public class Dfs3Download{
                 ReadInode readInode;
                 readInode = dfsUfsCore.xmlHandler.InodeReader.reader(xmlCachePath);
                 //Obtain the split parts Stitch them
+                pubKey=readInode.getPubKey();
                 TreeMap<String, String> splitParts = new TreeMap<>(readInode.getSplitParts());
                 byte[] completeFile = stitchFromCache(splitParts);
                 //Process file for decryption and/or verification.
                 System.out.println("File Stitched");
                 if(isDFS)
-                    postDownload(fileURI, completeFile);
+                    postDownload(fileURI, completeFile,pubKey);
                 else
-                    postDownload(fileName, completeFile);
+                    postDownload(fileName, completeFile, pubKey);
             }
             else {
                 //If file inode not found in the local cache..
@@ -188,14 +192,15 @@ public class Dfs3Download{
      *<p>2. Sends it for post download encryption and/or verification depending upon DFS/UFS. </p>
      * @param fileURI file URI
      * @param completefile completely stitched file.
+     * @param pubKey public key of the uploader
      */
-    public static void postDownload(String fileURI, byte[] completefile) {
+    public static void postDownload(String fileURI, byte[] completefile, PublicKey pubKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, IOException, InvalidKeyException {
 
         boolean flag;
         if (isDFS)
             flag = dfsDownload(fileURI, completefile);
         else
-            flag = ufsDownload(completefile);
+            flag = ufsDownload(completefile, pubKey);
         JFrame frame;
         frame = new JFrame();
         dialog.setVisible(false);
@@ -215,7 +220,6 @@ public class Dfs3Download{
      */
     private static boolean dfsDownload(String fileURI, byte[] completefile) {
         // compare the hash of completefile with the original filepluskey
-        System.out.println("size of file plus key: "+ completefile.length);
         boolean hashMatch = comparehash(fileURI,completefile, isDFS);
         // retrieve data, decrypt data after decrypting key
         // write the file on decrypting data
@@ -248,24 +252,27 @@ public class Dfs3Download{
     /**
      * <p>1.This method detaches hash of file embedded while uploading.</p>
      * <p>2.writes on local disk if hash is matched with original file hash.</p>
-     * @param completefile completely stitched file.
+     * @param completeFile completely stitched file.
+     * @param pubKey public key of the uploader extracted from inode file.
      * @return boolean flag indicating success/failure.
      */
-    private static boolean ufsDownload(byte[] completefile) {
+    private static boolean ufsDownload(byte[] completeFile, PublicKey pubKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, IOException, InvalidKeyException {
 
-        byte[] fileHash= Arrays.copyOf(completefile,64);
-
-        byte[] data = deconcat(completefile,64);
+        //discard first eight bytes of tlv frame
+        byte[] deFramed = deconcat(completeFile, 8);
+        byte[] signedHash= Arrays.copyOf(deFramed,128);
+        byte[] data = deconcat(deFramed,128);
         String hashCalc= null;
         try {
             hashCalc = Hash.hashgenerator(data);
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        assert hashCalc != null;
-        byte[] hasharray = hashCalc.getBytes();
-        System.out.println("Hash calculated from received file: "+hashCalc);
-        if(Arrays.equals(hasharray,fileHash)) {
+        boolean hashMatch = GenerateKeys.verifyHashK(hashCalc.getBytes(), signedHash, pubKey);
+        //assert hashCalc != null;
+        //byte[] hasharray = hashCalc.getBytes();
+        //System.out.println("Hash calculated from received file: "+hashCalc);
+        if(hashMatch) {
             String[] writePath = fileName.split("@@");
             writeData(data, writePath[0]);
             System.out.println("Download successfully completed!");
@@ -297,7 +304,7 @@ public class Dfs3Download{
         //If not inode, then it is a file segment, send it for reassembly.
         else
         {
-            Reassembly.start(inbound, fileName, isDFS);
+            Reassembly.start(inbound, fileName);
             segmentCount++;
             System.out.println(segmentCount + " files have been downloaded");
             if (fileName.equals("DFSuploaded.csv") || fileName.equals("UFSuploaded.csv")) {
@@ -310,14 +317,16 @@ public class Dfs3Download{
                 //Obtain the list of split parts.
                 List<String> splitList = new ArrayList<>(splits.keySet());
                 String[] segmentInodes = splitList.toArray(new String[0]);
+                System.out.println("Total Number of segments: "+segmentInodes.length);
+                System.out.println("Segments: "+splitList);
                 // if all segments have been downloaded then start stitching them
                 if (segmentCount == segmentInodes.length) {
                     byte[] completeFile = stitchFromCache(splits);
                     System.out.println("File Stitched");
                     if (isDFS)
-                        postDownload(fileURI, completeFile);
+                        postDownload(fileURI, completeFile, pubKey);
                     else
-                        postDownload(fileName, completeFile);
+                        postDownload(fileName, completeFile, pubKey);
                 } else
                     System.out.println("Download in progress");
             }
@@ -373,8 +382,10 @@ public class Dfs3Download{
             inodeReader = InodeReader.reader(xmlCachePath);
             fileName=inodeReader.getFileName();
             System.out.println("File Name:" + inodeReader.getFileName());
+            pubKey = inodeReader.getPubKey();
             HashMap<String, String> splitList = inodeReader.getSplitParts();
             splits= new TreeMap<>(splitList);
+            System.out.println(splitList);
             for(String splitPart : splitList.keySet()) {
                 String hashedInode;
                 if(isDFS)
@@ -408,10 +419,9 @@ public class Dfs3Download{
          * Receives various parameters from segment download and sends for sequencing.
           * @param inbound inbound file in byte array form.
          * @param fileName name of the file
-         * @param isDFS whether DFS or UFS
          * @throws IOException in case of IO exception.
          */
-        public static void start(byte[] inbound, String fileName, boolean isDFS) throws IOException {
+        public static void start(byte[] inbound, String fileName) throws IOException {
             sequencing(inbound,fileName);
         }
 

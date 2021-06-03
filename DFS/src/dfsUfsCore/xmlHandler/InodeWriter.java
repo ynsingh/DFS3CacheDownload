@@ -4,6 +4,7 @@ import dfsUfsCore.dfsMgr.DFS3Config;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.FileOutputStream;
+import java.security.PublicKey;
 import java.util.*;
 
 
@@ -19,7 +20,11 @@ public class InodeWriter {
             else
                 inode = System.getProperty("user.dir") +
                         System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
-            System.out.println(inode);
+            //System.out.println(inode);
+            //Read public key from key store
+            PublicKey pubKey= simulateGC.encrypt.Encrypt.getPublic();
+            Base64.Encoder encoder = Base64.getEncoder();
+            String publicKeyStr = encoder.encodeToString(pubKey.getEncoded());
             FileOutputStream fos = new FileOutputStream(inode);
             XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newFactory();
             XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(fos);
@@ -77,6 +82,11 @@ public class InodeWriter {
             //write isInode attribute
             xMLStreamWriter.writeCharacters(String.valueOf(true));
             //end isDFS
+            xMLStreamWriter.writeEndElement();
+            //start pubKey
+            xMLStreamWriter.writeStartElement("pubKey");
+            xMLStreamWriter.writeCharacters(publicKeyStr);
+            //end pubKey
             xMLStreamWriter.writeEndElement();
             //write segment key and values
             //xMLStreamWriter.writeStartElement("SplitParts");

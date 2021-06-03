@@ -1,12 +1,15 @@
 package dfsUfsCore.xmlHandler;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.TreeMap;
 import javax.xml.stream.*;
 
 
 public class InodeReader {
-    public static ReadInode reader(String fileName) {
+    public static ReadInode reader(String fileName) throws NoSuchAlgorithmException, InvalidKeySpecException {
         boolean bFileName = false;
         boolean bFileSize = false;
         boolean bFileURI = false;
@@ -15,6 +18,7 @@ public class InodeReader {
         boolean bTimeStamp = false;
         boolean bFBit = false;
         boolean bIsInode = false;
+        boolean bPubKey = false;
         boolean bSplitPart = false;
         ReadInode readInode = null;
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -49,6 +53,8 @@ public class InodeReader {
                             bFBit = true;
                         } else if (xmlStreamReader.getLocalName().equals("isInode")) {
                             bIsInode = true;
+                        } else if (xmlStreamReader.getLocalName().equals("pubKey")) {
+                            bPubKey = true;
                         } else if (xmlStreamReader.getLocalName().equals("splitPart")) {
                             bSplitPart = true;
                         }
@@ -88,6 +94,11 @@ public class InodeReader {
                             readInode.setIsInode(Boolean.parseBoolean(xmlStreamReader.getText()));
                             //System.out.println(readInode.getIsInode());
                             bIsInode = false;
+                        }
+                            else if (bPubKey) {
+                                readInode.setPubKey(xmlStreamReader.getText());
+                                //System.out.println(readInode.getIsInode());
+                                bPubKey = false;
                         } else if (bSplitPart) {
                             String tuple = xmlStreamReader.getText();
                             //System.out.println(tuple);

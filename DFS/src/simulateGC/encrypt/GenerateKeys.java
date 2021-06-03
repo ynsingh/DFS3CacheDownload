@@ -110,5 +110,13 @@ public class GenerateKeys {
                 (hashComputed,signedHash,publicKey,SIGN_SHA_256_RSA);
         return hashSigned;
     }
+    public static boolean verifyHashK(byte[] hashComputed,byte[] signedHash, PublicKey pubKey)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
+            InvalidKeySpecException, IOException {
+        // call teh verifysignature method to verify  signed hash
+        boolean hashSigned = MsgIntegrity.verifySignature
+                (hashComputed,signedHash,pubKey,SIGN_SHA_256_RSA);
+        return hashSigned;
+    }
 
 }

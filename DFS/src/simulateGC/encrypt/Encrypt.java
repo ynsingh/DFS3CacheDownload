@@ -241,7 +241,7 @@ public class Encrypt {
      */
     public static PublicKey getPublic() throws InvalidKeySpecException,
             NoSuchAlgorithmException, IOException {
-        byte[] keyBytes = Files.readAllBytes(new File("KeyVault/PublicKey").toPath());
+        byte[] keyBytes = Files.readAllBytes(new File("KeyVault"+System.getProperty("file.separator")+"PublicKey").toPath());
         X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return kf.generatePublic(spec);

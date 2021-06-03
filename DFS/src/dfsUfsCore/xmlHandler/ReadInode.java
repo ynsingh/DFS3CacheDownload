@@ -1,4 +1,11 @@
 package dfsUfsCore.xmlHandler;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 
 
@@ -12,6 +19,21 @@ public class ReadInode {
     private boolean fbit;
     private boolean isInode;
     private final HashMap<String, String> splitParts = new HashMap<>();
+
+    public PublicKey getPubKey() {
+        return pubKey;
+    }
+
+    public ReadInode setPubKey(String publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] byteKey = decoder.decode(publicKey.getBytes());
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(byteKey);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        this.pubKey=kf.generatePublic(spec);
+        return this;
+    }
+
+    private PublicKey pubKey;
 
     public String getFileName() {
         return fileName;
