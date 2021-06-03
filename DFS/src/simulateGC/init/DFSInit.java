@@ -5,6 +5,9 @@ import simulateGC.communication.Receiver;
 
 import java.io.*;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 /**
  * This class is the entry point for DFS-UFS when running is stand alone mode.
  *<p>1. It creates a singleton of DFS3Config responsible for initiating and maintaining the state of DFS</p>
@@ -29,6 +32,10 @@ public class DFSInit {
             try {
                 Receiver.start();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
                 e.printStackTrace();
             }
         });

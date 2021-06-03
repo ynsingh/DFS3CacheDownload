@@ -62,69 +62,6 @@ public class Locate {
         dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
     }
 
-    private static boolean isInodeReader(String path) throws FileNotFoundException, XMLStreamException {
-
-        String xmlPath = path+".xml";
-        ReadObject query = null;
-        // Initialise Input factory
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        try {
-            // Initialise a stream reader with fileName
-            XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader
-                    (new FileInputStream(path));
-            // Each event is identified with a integer value
-            int event = xmlStreamReader.getEventType();
-            // till there is a next event the loop will continue
-            while (xmlStreamReader.hasNext()) {
-                switch(event) {
-                    // if it is the start element in the XML
-                    case XMLStreamConstants.START_ELEMENT:
-                        // within start element if it is Service then retrieve the attribute
-                        // put the attribute value by setId into the object
-                        if(xmlStreamReader.getLocalName().equals("Service")){
-                            query = new ReadObject();
-                            query.setId(Integer.parseInt(xmlStreamReader.getAttributeValue(0)));
-                            // within start element if it is Inode then set hash true
-                        }else if(xmlStreamReader.getLocalName().equals("Inode")){
-                            hash=true;
-                            // if within start element it is Data then read data
-                            // and put it through method set Data into the object
-                        }else if(xmlStreamReader.getLocalName().equals("Data")){
-                            query.setData(xmlStreamReader.getElementText());
-                        }else if(xmlStreamReader.getLocalName().equals("isInode")){
-                            query.setIsInode(Boolean.parseBoolean(xmlStreamReader.getElementText()));
-                        }
-                        break;
-                    case XMLStreamConstants.CHARACTERS:
-                        // if hash is true read the content and put the value of the
-                        // inode into the object
-                        if(hash){
-                            query.setInode(xmlStreamReader.getText());
-                            hash = false;
-                        }
-                        break;
-                    case XMLStreamConstants.END_ELEMENT:
-                        //  if the End element is encountered and if it is service
-                        // add the object query to the query list
-                        if(xmlStreamReader.getLocalName().equals("Service")){
-                            //queryList.add(query);
-                        }
-                        break;
-                }
-                // the loop control goes to the next event
-                // In our case I have kept only one event that is
-                // one set of tag, inode and data you can have more if
-                // needed thats why the query list is there
-                event = xmlStreamReader.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("xml reading error!");
-
-        }
-        return query.getIsInode();
-    }
-
     /**
      * This method is responsible to read the index "root_index.csv"
      * and return the local path corresponding to a particular

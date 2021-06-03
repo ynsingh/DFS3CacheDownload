@@ -1,10 +1,17 @@
 package dfsUfsCore.xmlHandler;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
 public class ReadObject {
     private int id;
     private String hashedInode;
     private String data;
-    private boolean isInode;
+    private PublicKey pubKey;
     // method to getId
     public int getId() {return id;}
     // method to put id
@@ -27,14 +34,16 @@ public class ReadObject {
     public void setData(String data) {
         // byte[] decoded = Base64.getDecoder().decode(data.getBytes());
         this.data = data;}
-    // method to get isInode
-    public boolean getIsInode() {
-        return isInode;
-    }
-    // method to put isInode
-    public void setIsInode(boolean isInode) {
-        this.isInode = isInode;
+    public PublicKey getPubKey() {
+        return pubKey;
     }
 
+    public void setPubKey(String publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] byteKey = decoder.decode(publicKey.getBytes());
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(byteKey);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        this.pubKey=kf.generatePublic(spec);
+    }
 }
 

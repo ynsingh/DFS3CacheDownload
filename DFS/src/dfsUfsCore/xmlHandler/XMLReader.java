@@ -11,10 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -24,7 +21,7 @@ public class XMLReader {
 
     private static boolean hash;
     // this method parses the xml using StAX CURSOR API
-    public static void reader(File xmlFile) throws IOException {
+    public static void reader(File xmlFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         List<ReadObject> queryList = new ArrayList<>();
         ReadObject query = null;
         // Initialise Input factory
@@ -57,8 +54,8 @@ public class XMLReader {
                         // and put it through method set Data into the object
                         }else if(xmlStreamReader.getLocalName().equals("Data")){
                             query.setData(xmlStreamReader.getElementText());
-                        }else if(xmlStreamReader.getLocalName().equals("isInode")){
-                            query.setIsInode(Boolean.parseBoolean(xmlStreamReader.getElementText()));
+                        }else if(xmlStreamReader.getLocalName().equals("pubKey")){
+                            query.setPubKey(xmlStreamReader.getElementText());
                         }
                         break;
                     case XMLStreamConstants.CHARACTERS:
@@ -92,7 +89,7 @@ public class XMLReader {
         byte[] decoded = new byte[0];
         String inode = null;
         int id = 0;
-        boolean isInode=false;
+        PublicKey publicKey=query.getPubKey();
         // retrieve each element from querylist
         for(ReadObject value : queryList){
             // get the value of id from the object
@@ -101,7 +98,6 @@ public class XMLReader {
             inode = value.getInode();
             // if id is 1 which is for upload or id is 20 which is for Locate
             // then read data
-            isInode = value.getIsInode();
             if(id == 1|id == 20|id == 4|id==2)
             {
                 // read the string into encoded bytes and then decode the base64 code
@@ -114,7 +110,7 @@ public class XMLReader {
         // if id is 1 then query message from upload hence call store
         if(id == 1)
         try {
-            Store.start(decoded,inode);
+            Store.start(decoded,inode, publicKey);
             dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
         } catch (IOException | InvalidKeyException | InvalidKeySpecException
                 | SignatureException | NoSuchAlgorithmException e) {

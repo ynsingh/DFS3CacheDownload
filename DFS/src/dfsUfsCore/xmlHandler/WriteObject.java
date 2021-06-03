@@ -6,15 +6,16 @@ public class WriteObject {
     private int id;
     private String hashedInode;
     private String data;
-    private boolean isInode;
+    private String publicKeyStr;
 
-    public WriteObject(int id, String hashedInode,byte[] data, boolean isInode){
+    public WriteObject(int id, String hashedInode, byte[] data, String publicKeyStr){
         this.id = id;
         this.hashedInode = hashedInode;
         // base 64 encoding
         byte[] encoded = Base64.getEncoder().encode(data);
         this.data = new String(encoded);
-        this.isInode = isInode;
+        this.publicKeyStr=publicKeyStr;
+
     }
     // method to getId
     public int getId() {
@@ -40,8 +41,10 @@ public class WriteObject {
     public void setData(String data) {
         this.data = data;
     }
-    //method to getIsInode
-    public boolean getIsInode(){return isInode;}
-    //method to setIsInode
-    public void setInode(boolean isInode){this.isInode=isInode;}
+    //method to get public key in string format
+    public String getPublicKeyStr() { return publicKeyStr; }
+    //method to set public key in string format
+    public WriteObject setPublicKeyStr(String publicKeyStr) { this.publicKeyStr = publicKeyStr;
+        return this;
+    }
 }

@@ -6,14 +6,20 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 public class XMLWriter {
     // Write the XML using StAX CURSOR API
-    public static String writer(int tag, String hashInode,byte[] data, boolean isInode) throws IOException {
+    public static String writer(int tag, String hashInode,byte[] data, boolean isInode) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         String xmlFileName = hashInode+".xml";
-        //List<Query> queryList = new ArrayList<>();
-        //queryList.add(new query(attributes to be passed));
-        WriteObject query = new WriteObject(tag,hashInode,data, isInode);
+        //Read public key from key store
+        PublicKey pubKey= simulateGC.encrypt.Encrypt.getPublic();
+        Base64.Encoder encoder = Base64.getEncoder();
+        String publicKeyStr = encoder.encodeToString(pubKey.getEncoded());
+        WriteObject query = new WriteObject(tag,hashInode,data, publicKeyStr);
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         try{
             FileOutputStream fos = new FileOutputStream(xmlFileName);
@@ -39,19 +45,17 @@ public class XMLWriter {
             writer.writeCharacters(query.getData());
             writer.writeEndElement();
 
-            //write isInode
-            writer.writeCharacters("\n\t\t");
-            writer.writeStartElement("isInode");
-            writer.writeCharacters(String.valueOf(query.getIsInode()));
+            //start pubKey
+            writer.writeStartElement("pubKey");
+            writer.writeCharacters(query.getPublicKeyStr());
+            //end pubKey
             writer.writeEndElement();
-
             //write end tag of Service element
             writer.writeCharacters("\n\t");
             writer.writeEndElement();
             // write end tag of Services element
             writer.writeCharacters("\n");
             writer.writeEndElement();
-
             //write end document
             writer.writeEndDocument();
 
