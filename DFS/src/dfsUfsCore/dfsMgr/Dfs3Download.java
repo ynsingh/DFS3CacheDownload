@@ -370,7 +370,7 @@ public class Dfs3Download{
 
         // discard first 16 bytes which indicate type and length.
         byte[] data = deconcat(decoded,16);
-
+        boolean locallyFound;
         String xmlCachePath;
         if(isDFS)
             xmlCachePath= DFS3Config.getDfsCache()+fileName + "_Inode.xml";
@@ -388,23 +388,39 @@ public class Dfs3Download{
             System.out.println(splitList);
             for(String splitPart : splitList.keySet()) {
                 String hashedInode;
-                if(isDFS)
+                if(isDFS) {
                     hashedInode = Hash.hashpath(DFS3Config.getRootInode() + splitPart);
+                    String dfsLocalPath = DFS3Config.getDfsCache()+splitPart;
+                    Path file = Paths.get(dfsLocalPath);
+                    locallyFound=Files.exists(file);
+                }
                 else
+                {
                     hashedInode = Hash.hashpath(splitPart);
+                    String ufsLocalPath = DFS3Config.getUfsCache()+splitPart;
+                    Path file = Paths.get(ufsLocalPath);
+                    locallyFound=Files.exists(file);
+                }
+
                 // xml query  with inode.tag for download is 2
                 //the data filed is blank hence "Nothing" to avoid null pointer exception
-                String xmlPath = writer(2, hashedInode, "localhost".getBytes(), false);
-                if(isDFS)
-                    System.out.println("Query for "+ DFS3Config.getRootInode() + splitPart + " sent to network");
-                else
-                    System.out.println("Query for " + splitPart + " sent to network");
-                System.out.println("Query sent: "+ hashedInode);
-                //Send the file to output buffer.
-                DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
-                // TODO - query the dht and get the IP
-                Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-                dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+                if(!locallyFound) {
+                    String xmlPath = writer(2, hashedInode, "localhost".getBytes(), false);
+                    if (isDFS)
+                        System.out.println("Query for " + DFS3Config.getRootInode() + splitPart + " sent to network");
+                    else
+                        System.out.println("Query for " + splitPart + " sent to network");
+                    System.out.println("Query sent: "+ hashedInode);
+                    //Send the file to output buffer.
+                    DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
+                    // TODO - query the dht and get the IP
+                    Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+                    dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+                }
+                else {
+                    System.out.println(splitPart + " found in local cache");
+                    segmentCount++;
+                }
             }
         }
         catch(Exception e){
