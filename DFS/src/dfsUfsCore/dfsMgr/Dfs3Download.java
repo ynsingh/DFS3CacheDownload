@@ -72,7 +72,7 @@ public class Dfs3Download{
         System.out.println("File URI: "+ fileURI);
         String hash;
         //Check whether file is being downloaded using the hash of its inode file in UFS.
-        boolean isHash = Hash.isValidSHA256(fileURI);
+        boolean isHash = Hash.isValidSHA1(fileURI);
         if (isHash) {
             //Fetch inode file from the network
             hash = writer(2, fileURI, "Nothing".getBytes(), true);
@@ -420,6 +420,14 @@ public class Dfs3Download{
                 else {
                     System.out.println(splitPart + " found in local cache");
                     segmentCount++;
+                    if (segmentCount == splits.size()) {
+                        byte[] completeFile = stitchFromCache(splits);
+                        System.out.println("File Stitched");
+                        if (isDFS)
+                            postDownload(fileURI, completeFile, pubKey);
+                        else
+                            postDownload(fileName, completeFile, pubKey);
+                    }
                 }
             }
         }

@@ -26,7 +26,7 @@ public class DFSInit {
     public static void main(String[] args) throws IOException, GeneralSecurityException, InterruptedException {
 
         //Create singleton object of DFS3Config.
-        DFS3Config dfsconfig = DFS3Config.getInstance();
+        DFS3Config dfs = DFS3Config.getInstance();
         Thread rx;
         rx = new Thread(() -> {
             try {

@@ -20,7 +20,7 @@ import javax.swing.*;
  * <p>2. Reads the stored state and resumes DFS as regular initialization</p>
  * <p>3. Creates singleton object</p>
  */
-public class DFS3Config implements Serializable {
+public class DFS3Config extends DFS3Upload implements Serializable  {
 
     private static final long serialVersionUID = 1L;
     private static volatile DFS3Config config;
