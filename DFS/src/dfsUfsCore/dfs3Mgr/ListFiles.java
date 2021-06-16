@@ -1,4 +1,4 @@
-package dfsUfsCore.dfsMgr;
+package dfsUfsCore.dfs3Mgr;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

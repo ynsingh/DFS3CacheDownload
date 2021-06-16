@@ -1,4 +1,4 @@
-package dfsUfsCore.xmlHandler;
+package dfsUfsCore.dfs3xmlHandler;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;

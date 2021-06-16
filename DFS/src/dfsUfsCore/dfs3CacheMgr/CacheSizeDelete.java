@@ -1,4 +1,4 @@
-package dfsUfsCore.dfsCacheMgr;
+package dfsUfsCore.dfs3CacheMgr;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dfsUfsCore.dfsMgr.DFS3Config;
+import dfsUfsCore.dfs3Mgr.DFS3Config;
 
 public class CacheSizeDelete {
 

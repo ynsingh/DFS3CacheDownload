@@ -1,7 +1,7 @@
 package simulateGC.encrypt;
 
 
-import dfsUfsCore.dfsMgr.Locate;
+import simulateGC.indexing.Locate;
 
 import java.io.*;
 

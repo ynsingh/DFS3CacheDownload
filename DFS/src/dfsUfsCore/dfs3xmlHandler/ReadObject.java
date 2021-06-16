@@ -1,4 +1,4 @@
-package dfsUfsCore.xmlHandler;
+package dfsUfsCore.dfs3xmlHandler;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;

@@ -1,16 +1,16 @@
-package dfsUfsCore.dfsMgr;
+package dfsUfsCore.dfs3Mgr;
 
 import simulateGC.communication.Sender; // Demo/testing. TO be integrated with Communication Manager.
 import dfsUfsCore.dfs3Util.TLVParser;
 import simulateGC.encrypt.Encrypt; // Demo/testing. TO be integrated with isec/encryption Manager.
 import simulateGC.encrypt.GenerateKeys;
 import simulateGC.encrypt.Hash; //Demo/testing. TO be integrated with isec/encryption Manager
-import dfsUfsCore.xmlHandler.InodeReader;
-import dfsUfsCore.xmlHandler.ReadInode;
+import dfsUfsCore.dfs3xmlHandler.InodeReader;
+import dfsUfsCore.dfs3xmlHandler.ReadInode;
 
 import static dfsUfsCore.dfs3Util.file.*;
 import static simulateGC.encrypt.Hash.comparehash; //Demo/testing. TO be integrated with isec/encryption Manager
-import static dfsUfsCore.xmlHandler.XMLWriter.writer;
+import static dfsUfsCore.dfs3xmlHandler.XMLWriter.writer;
 
 import org.xml.sax.SAXException;
 import javax.swing.*;
@@ -110,7 +110,7 @@ public class Dfs3Download{
                 System.out.println("File inode found in local cache...");
                 //Create inode object and read using inodeReader xml parser.
                 ReadInode readInode;
-                readInode = dfsUfsCore.xmlHandler.InodeReader.reader(xmlCachePath);
+                readInode = dfsUfsCore.dfs3xmlHandler.InodeReader.reader(xmlCachePath);
                 //Obtain the split parts Stitch them
                 pubKey=readInode.getPubKey();
                 TreeMap<String, String> splitParts = new TreeMap<>(readInode.getSplitParts());

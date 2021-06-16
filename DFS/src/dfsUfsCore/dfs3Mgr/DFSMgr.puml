@@ -1,0 +1,10 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+public class DFS3BufferMgr {
+private static final List<File> inputDFSBuffer = new LinkedList<>();
+    private static final List<File> outputDFSBuffer = new LinkedList<>();
+    private static final ReentrantLock inputBufferLock = new ReentrantLock();
+    private static final ReentrantLock outputBufferLock = new ReentrantLock();
+    private static DFS3BufferMgr dfsBufferMgr;
+@enduml

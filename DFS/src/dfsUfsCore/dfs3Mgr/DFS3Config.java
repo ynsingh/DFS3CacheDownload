@@ -1,4 +1,4 @@
-package dfsUfsCore.dfsMgr;
+package dfsUfsCore.dfs3Mgr;
 
 import java.io.File;
 import java.io.FileInputStream;

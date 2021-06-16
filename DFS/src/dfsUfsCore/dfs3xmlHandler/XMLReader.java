@@ -1,6 +1,8 @@
-package dfsUfsCore.xmlHandler;
+package dfsUfsCore.dfs3xmlHandler;
 
-import dfsUfsCore.dfsMgr.*;
+import dfsUfsCore.dfs3Mgr.*;
+import simulateGC.indexing.Locate;
+import simulateGC.indexing.Store;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;

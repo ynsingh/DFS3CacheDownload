@@ -1,6 +1,7 @@
-package dfsUfsCore.dfsMgr;
+package simulateGC.indexing;
 
 import dfsUfsCore.dfs3Util.TLVParser;
+import dfsUfsCore.dfs3Mgr.DFS3Config;
 import simulateGC.encrypt.GenerateKeys;
 import simulateGC.encrypt.Hash;
 

@@ -1,17 +1,14 @@
-package dfsUfsCore.dfsMgr;
+package simulateGC.indexing;
 
+import dfsUfsCore.dfs3Mgr.DFS3Config;
 import simulateGC.communication.Sender;
-import dfsUfsCore.xmlHandler.ReadObject;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.security.GeneralSecurityException;
 
 import static dfsUfsCore.dfs3Util.file.readdata;
-import static dfsUfsCore.xmlHandler.XMLWriter.writer;
+import static dfsUfsCore.dfs3xmlHandler.XMLWriter.writer;
 
 /**
  * Class responsible for locating the segment in the  local Disk.

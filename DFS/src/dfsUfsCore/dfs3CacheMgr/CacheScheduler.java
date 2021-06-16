@@ -1,5 +1,5 @@
-package dfsUfsCore.dfsCacheMgr;
-import dfsUfsCore.dfsMgr.DFS3Config;
+package dfsUfsCore.dfs3CacheMgr;
+import dfsUfsCore.dfs3Mgr.DFS3Config;
 
 import java.io.IOException;
 import java.nio.file.Path;

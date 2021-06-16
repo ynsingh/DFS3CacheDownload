@@ -1,4 +1,4 @@
-package dfsUfsCore.dfsMgr;
+package dfsUfsCore.dfs3Mgr;
 
 import dfsUfsCore.dfs3Util.TLVParser;
 import simulateGC.communication.Sender; // For demo/testing. to be replaced with communication manager post integration with b4mail client.
@@ -6,7 +6,7 @@ import simulateGC.encrypt.*;// For demo/testing. to be replaced with encryption/
 import static dfsUfsCore.dfs3Util.file.*;
 import static simulateGC.encrypt.Encrypt.concat;
 import static simulateGC.encrypt.Hash.hashgenerator;
-import static dfsUfsCore.xmlHandler.XMLWriter.writer;
+import static dfsUfsCore.dfs3xmlHandler.XMLWriter.writer;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -21,7 +21,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import dfsUfsCore.xmlHandler.*;
+import dfsUfsCore.dfs3xmlHandler.*;
 
 import javax.swing.*;
 

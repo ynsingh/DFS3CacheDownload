@@ -1,14 +1,12 @@
 package simulateGC.init;
 
-import dfsUfsCore.dfsMgr.Dfs3Download;
-import dfsUfsCore.dfsMgr.ListFiles;
+import dfsUfsCore.dfs3Mgr.Dfs3Download;
+import dfsUfsCore.dfs3Mgr.ListFiles;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-
-import dfsUfsCore.dfsMgr.DFS3Upload;
 
 public class DFSUI extends JFrame {
     private final JMenuBar menu;
@@ -94,7 +92,7 @@ public class DFSUI extends JFrame {
         btnDfsUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                boolean flag = dfsUfsCore.dfsMgr.DFS3Upload.start(true);//reference to Upload.start()
+                boolean flag = dfsUfsCore.dfs3Mgr.DFS3Upload.start(true);//reference to Upload.start()
                 JFrame frame;
                 frame = new JFrame();
                 if(flag)
@@ -119,7 +117,7 @@ public class DFSUI extends JFrame {
         btnUfsUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                boolean flag = dfsUfsCore.dfsMgr.DFS3Upload.start(false);//reference to Upload.start()
+                boolean flag = dfsUfsCore.dfs3Mgr.DFS3Upload.start(false);//reference to Upload.start()
                 JFrame frame;
                 frame = new JFrame();
                 if(flag)

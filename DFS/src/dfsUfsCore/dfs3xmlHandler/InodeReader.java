@@ -1,8 +1,7 @@
-package dfsUfsCore.xmlHandler;
+package dfsUfsCore.dfs3xmlHandler;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.TreeMap;
 import javax.xml.stream.*;
