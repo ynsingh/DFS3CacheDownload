@@ -111,18 +111,6 @@ public class Dfs3Download{
                 byte[] padding = new byte[16];
                 byte[] inodePadded = simulateGC.encrypt.Encrypt.concat(padding, inodeData);
                 parseInode(inodePadded);
-                /*ReadInode readInode;
-                //readInode = dfs3Ufs1Core.dfs3xmlHandler.InodeReader.reader(xmlCachePath);
-                //Obtain the split parts Stitch them
-                //pubKey=readInode.getPubKey();
-                //TreeMap<String, String> splitParts = new TreeMap<>(readInode.getSplitParts());
-                //byte[] completeFile = stitchFromCache(splitParts);
-                //Process file for decryption and/or verification.
-                System.out.println("File Stitched");
-                if(isDFS)
-                    postDownload(fileURI, completeFile,pubKey);
-                else
-                    postDownload(fileName, completeFile, pubKey); */
             }
             else {
                 //If file inode not found in the local cache..
