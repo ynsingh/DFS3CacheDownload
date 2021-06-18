@@ -1,7 +1,7 @@
 package simulateGC.init;
 
-import dfsUfsCore.dfs3Mgr.Dfs3Download;
-import dfsUfsCore.dfs3Mgr.ListFiles;
+import dfs3Ufs1Core.dfs3Mgr.Dfs3Download;
+import dfs3Ufs1Core.dfs3Mgr.DFS3ListFiles;
 
 import javax.swing.*;
 import java.awt.*;
@@ -92,7 +92,7 @@ public class DFSUI extends JFrame {
         btnDfsUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                boolean flag = dfsUfsCore.dfs3Mgr.DFS3Upload.start(true);//reference to Upload.start()
+                boolean flag = dfs3Ufs1Core.dfs3Mgr.DFS3Upload.start(true);//reference to Upload.start()
                 JFrame frame;
                 frame = new JFrame();
                 if(flag)
@@ -108,7 +108,7 @@ public class DFSUI extends JFrame {
         btnDfsDownload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                ListFiles.start(true);//reference to Upload.start()
+                DFS3ListFiles.start(true);//reference to Upload.start()
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -117,7 +117,7 @@ public class DFSUI extends JFrame {
         btnUfsUpload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
             try {
-                boolean flag = dfsUfsCore.dfs3Mgr.DFS3Upload.start(false);//reference to Upload.start()
+                boolean flag = dfs3Ufs1Core.dfs3Mgr.DFS3Upload.start(false);//reference to Upload.start()
                 JFrame frame;
                 frame = new JFrame();
                 if(flag)
@@ -132,7 +132,7 @@ public class DFSUI extends JFrame {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
         btnUfsDownload.addActionListener(e -> {
             //call the Upload class once user clicks on Upload
-            //ListFiles.start(false);//reference to Upload.start()
+            //DFS3ListFiles.start(false);//reference to Upload.start()
             ufsOptions();
         });
     }

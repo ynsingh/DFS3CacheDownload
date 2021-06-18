@@ -1,6 +1,6 @@
 package simulateGC.encrypt;
 
-import dfsUfsCore.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
 
 import java.io.File;
 import java.io.FileOutputStream;

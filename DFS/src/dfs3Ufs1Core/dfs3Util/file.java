@@ -1,4 +1,4 @@
-package dfsUfsCore.dfs3Util;
+package dfs3Ufs1Core.dfs3Util;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;

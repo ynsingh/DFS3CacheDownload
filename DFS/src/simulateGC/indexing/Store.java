@@ -1,7 +1,7 @@
 package simulateGC.indexing;
 
-import dfsUfsCore.dfs3Util.TLVParser;
-import dfsUfsCore.dfs3Mgr.DFS3Config;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Mgr.DFS3Config;
 import simulateGC.encrypt.GenerateKeys;
 import simulateGC.encrypt.Hash;
 
@@ -13,7 +13,7 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
-import static dfsUfsCore.dfs3Util.file.*;
+import static dfs3Ufs1Core.dfs3Util.file.*;
 
 /**
  * Class responsible for storing the uploaded data.

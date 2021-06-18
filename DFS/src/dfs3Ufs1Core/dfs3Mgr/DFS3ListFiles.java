@@ -1,4 +1,4 @@
-package dfsUfsCore.dfs3Mgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,7 +20,7 @@ import java.util.Scanner;
  * @author <a href="https://t.me/sidharthiitk">Sidharth Patra</a>
  * @since   15th Feb 2020
  */
-public class ListFiles {
+public class DFS3ListFiles {
     // for using the comma as delimiter in csv
     // any symbol can be used such as : or ::
     private final static String CSV_DELIMIT = ",";

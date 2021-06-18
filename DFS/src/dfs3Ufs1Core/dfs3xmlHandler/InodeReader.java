@@ -1,4 +1,4 @@
-package dfsUfsCore.dfs3xmlHandler;
+package dfs3Ufs1Core.dfs3xmlHandler;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.security.NoSuchAlgorithmException;

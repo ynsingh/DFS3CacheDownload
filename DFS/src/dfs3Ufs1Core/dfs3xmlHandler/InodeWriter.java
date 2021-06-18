@@ -1,5 +1,5 @@
-package dfsUfsCore.dfs3xmlHandler;
-import dfsUfsCore.dfs3Mgr.DFS3Config;
+package dfs3Ufs1Core.dfs3xmlHandler;
+import dfs3Ufs1Core.dfs3Mgr.DFS3Config;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;

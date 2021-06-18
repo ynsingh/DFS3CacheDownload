@@ -1,4 +1,4 @@
-package dfsUfsCore.dfs3Mgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -385,7 +385,7 @@ public class DFS3Config extends DFS3Upload implements Serializable  {
             setMailID(emailID);
             String localDisk = JOptionPane.showInputDialog("Please specify local disk to be offered in GB: ");
             //If both inputs are valid, proceed to initialize various variables.
-            if (dfsUfsCore.dfs3Util.file.isValidEmail(getMailID()) && dfsUfsCore.dfs3Util.file.isValidFloat(localDisk))
+            if (dfs3Ufs1Core.dfs3Util.file.isValidEmail(getMailID()) && dfs3Ufs1Core.dfs3Util.file.isValidFloat(localDisk))
             {
                 config.rootInode = "dfs://"+mailID+"/";
                 float localoffered = Float.parseFloat(localDisk)*1024*1024*1024;
@@ -505,7 +505,7 @@ public class DFS3Config extends DFS3Upload implements Serializable  {
 
             else if(getLocalFree()< 1.1*getLocalBalance())
             {
-                System.out.println("Local space warning 75%.");
+                System.out.println("Local space warning 90%.");
                 JOptionPane.showMessageDialog(frame,"Local space guranteed is about to be encroached by other files."
                         +"\nPlease free up local space","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
 

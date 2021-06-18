@@ -1,4 +1,4 @@
-package dfsUfsCore.dfs3CacheMgr;
+package dfs3Ufs1Core.dfs3CacheMgr;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

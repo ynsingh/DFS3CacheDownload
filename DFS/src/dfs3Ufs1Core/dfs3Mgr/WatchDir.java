@@ -1,4 +1,4 @@
-package dfsUfsCore.dfs3Mgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
 import java.nio.file.*;
 import static java.nio.file.StandardWatchEventKinds.*;

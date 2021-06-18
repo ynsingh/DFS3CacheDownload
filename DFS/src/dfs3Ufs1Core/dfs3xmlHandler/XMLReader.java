@@ -1,6 +1,6 @@
-package dfsUfsCore.dfs3xmlHandler;
+package dfs3Ufs1Core.dfs3xmlHandler;
 
-import dfsUfsCore.dfs3Mgr.*;
+import dfs3Ufs1Core.dfs3Mgr.*;
 import simulateGC.indexing.Locate;
 import simulateGC.indexing.Store;
 
@@ -113,7 +113,7 @@ public class XMLReader {
         if(id == 1)
         try {
             Store.start(decoded,inode, publicKey);
-            dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
+            dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlFile.getName());
         } catch (IOException | InvalidKeyException | InvalidKeySpecException
                 | SignatureException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -122,7 +122,7 @@ public class XMLReader {
         else if(id == 2)
             try {
                 Locate.start(inode,new String(decoded));
-                dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
+                dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlFile.getName());
             } catch (IOException | GeneralSecurityException | XMLStreamException e) {
                 e.printStackTrace();
             }
@@ -131,7 +131,7 @@ public class XMLReader {
         else if(id == 20)
             try {
                 Dfs3Download.segmentDownload(decoded);
-                dfsUfsCore.dfs3Util.file.deleteFile(xmlFile.getName());
+                dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlFile.getName());
 
             } catch (IOException | GeneralSecurityException e) {
                 e.printStackTrace();

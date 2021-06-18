@@ -1,6 +1,6 @@
 package simulateGC.init;
 
-import dfsUfsCore.dfs3Mgr.DFS3Config;
+import dfs3Ufs1Core.dfs3Mgr.DFS3Config;
 import simulateGC.communication.Receiver;
 
 import java.io.*;
@@ -42,7 +42,7 @@ public class DFSInit {
         //Start receiving server
         rx.start();
         //Initialize thread to monitor and manage local cache for DFS
-        dfsUfsCore.dfs3CacheMgr.CacheScheduler.scheduler();
+        dfs3Ufs1Core.dfs3CacheMgr.CacheScheduler.scheduler();
         DFSUI DUI = new DFSUI();
     }
 }

@@ -6,7 +6,7 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-import dfsUfsCore.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
 import simulateGC.isec.MsgIntegrity;
 
 import static simulateGC.isec.MsgIntegrity.SIGN_SHA_256_RSA;

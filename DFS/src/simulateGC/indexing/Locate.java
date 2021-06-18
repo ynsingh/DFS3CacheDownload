@@ -1,14 +1,14 @@
 package simulateGC.indexing;
 
-import dfsUfsCore.dfs3Mgr.DFS3Config;
+import dfs3Ufs1Core.dfs3Mgr.DFS3Config;
 import simulateGC.communication.Sender;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
 import java.security.GeneralSecurityException;
 
-import static dfsUfsCore.dfs3Util.file.readdata;
-import static dfsUfsCore.dfs3xmlHandler.XMLWriter.writer;
+import static dfs3Ufs1Core.dfs3Util.file.readdata;
+import static dfs3Ufs1Core.dfs3xmlHandler.XMLWriter.writer;
 
 /**
  * Class responsible for locating the segment in the  local Disk.
@@ -44,7 +44,7 @@ public class Locate {
         byte[] encFile = readdata(localPath);
         //byte[] xmlData = deconcat(encFile,16);
         //String tempXml = System.getProperty("user.dir") + System.getProperty("file.separator")+inode+".xml";
-        //dfsUfsCore.dfs3Util.file.writeData(xmlData, tempXml);
+        //dfs3Ufs1Core.dfs3Util.file.writeData(xmlData, tempXml);
         //System.out.println("reached here:"+xmlpath);
         //boolean isInode = isInodeReader(tempXml);
         //System.out.println("isInode:"+isInode);
@@ -56,7 +56,7 @@ public class Locate {
         DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
         // TODO - query the dht and get the IP
         Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-        dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+        dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
     }
 
     /**

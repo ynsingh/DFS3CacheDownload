@@ -1,7 +1,7 @@
 package simulateGC.communication;
 
-import dfsUfsCore.dfs3Mgr.DFS3BufferMgr;
-import dfsUfsCore.dfs3xmlHandler.XMLReader;
+import dfs3Ufs1Core.dfs3Mgr.DFS3BufferMgr;
+import dfs3Ufs1Core.dfs3xmlHandler.XMLReader;
 
 import java.io.*;
 import java.net.ServerSocket;

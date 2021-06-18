@@ -1,12 +1,12 @@
-package dfsUfsCore.dfs3Mgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
-import dfsUfsCore.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
 import simulateGC.communication.Sender; // For demo/testing. to be replaced with communication manager post integration with b4mail client.
 import simulateGC.encrypt.*;// For demo/testing. to be replaced with encryption/isec module post integration with b4mail client
-import static dfsUfsCore.dfs3Util.file.*;
+import static dfs3Ufs1Core.dfs3Util.file.*;
 import static simulateGC.encrypt.Encrypt.concat;
 import static simulateGC.encrypt.Hash.hashgenerator;
-import static dfsUfsCore.dfs3xmlHandler.XMLWriter.writer;
+import static dfs3Ufs1Core.dfs3xmlHandler.XMLWriter.writer;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -21,7 +21,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import dfsUfsCore.dfs3xmlHandler.*;
+import dfs3Ufs1Core.dfs3xmlHandler.*;
 
 import javax.swing.*;
 
@@ -64,9 +64,9 @@ public class DFS3Upload {
         //fileSuffix appends timestamp to a file.
         String fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String fileWithTimeStamp = fileName+"@@"+fileSuffix;
-        /*fileURI is the unique URI of a file in name space of P2P network.
+        /* fileURI is the unique URI of a file in name space of P2P network.
         e.g. for DFS -> dfs://ameyrh@iitk.ac.in/abc.pdf@@20210520150655
-        e.g. for UFS -> abc.pdf@@20210520150655*/
+        e.g. for UFS -> abc.pdf@@20210520150655 */
         String fileURI = DFS3Config.getRootInode() + fileWithTimeStamp;
         long fileSize = checkFileSize(path);
         //check whether adequate space is available in the user DFS cloud or it is a UFS upload.
@@ -121,7 +121,7 @@ public class DFS3Upload {
                 for (int i = 0; i < segmentInode.length && !(segmentInode[i] == null); i++) {
                     dispatch(segmentInode[i], i, isDFS);
                 }
-                dfsUfsCore.dfs3Util.file.deleteFile(splitFile);
+                dfs3Ufs1Core.dfs3Util.file.deleteFile(splitFile);
                 //Now uploading the inode of the file
                 String inode;
                 if(isDFS)
@@ -226,7 +226,7 @@ public class DFS3Upload {
         // TODO - query the dht and get the IP
         Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
         //Delete the xml file created for transmitting.
-        dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+        dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
     }
 }
 
@@ -296,7 +296,7 @@ class Segmentation {
                 writePartToFile(remainingBytes, position * bytesPerSplit, bis, partFiles, isDFS, fileWithTimeStamp, inode);
             fis.close();
             //Delete the temporary encrypted file
-            dfsUfsCore.dfs3Util.file.deleteFile(tempPath);
+            dfs3Ufs1Core.dfs3Util.file.deleteFile(tempPath);
             //return partFiles;
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
