@@ -1,4 +1,4 @@
-package dfsUfsCore.dfsMgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
 
 import java.io.File;
@@ -80,7 +80,7 @@ public class DFS3BufferMgr {
      * @param file - File object is given as input argument.
      * @return - true if the file is added successfully.
      */
-    boolean addToOutputBuffer(File file) {
+    public boolean addToOutputBuffer(File file) {
         outputBufferLock.lock();
         outputDFSBuffer.add(file);
         System.out.println("File added to Output buffer");
@@ -94,7 +94,7 @@ public class DFS3BufferMgr {
      * This method is used to fetch file from the bufferMgr.
      * @return - File.
      */
-    File fetchFromOutputBuffer() {
+    public File fetchFromOutputBuffer() {
         outputBufferLock.lock();
         File file = null;
         try{

@@ -6,7 +6,7 @@ import java.security.spec.InvalidKeySpecException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-import dfsUfsCore.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
 import simulateGC.isec.MsgIntegrity;
 
 import static simulateGC.isec.MsgIntegrity.SIGN_SHA_256_RSA;
@@ -108,6 +108,14 @@ public class GenerateKeys {
         // call teh verifysignature method to verify  signed hash
         boolean hashSigned = MsgIntegrity.verifySignature
                 (hashComputed,signedHash,publicKey,SIGN_SHA_256_RSA);
+        return hashSigned;
+    }
+    public static boolean verifyHashK(byte[] hashComputed,byte[] signedHash, PublicKey pubKey)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
+            InvalidKeySpecException, IOException {
+        // call teh verifysignature method to verify  signed hash
+        boolean hashSigned = MsgIntegrity.verifySignature
+                (hashComputed,signedHash,pubKey,SIGN_SHA_256_RSA);
         return hashSigned;
     }
 

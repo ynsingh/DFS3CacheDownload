@@ -1,4 +1,4 @@
-package dfsUfsCore.dfsCacheMgr;
+package dfs3Ufs1Core.dfs3CacheMgr;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,10 +11,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dfsUfsCore.dfsMgr.DFS3Config;
+import dfs3Ufs1Core.dfs3Mgr.DFS3Config;
 
 public class CacheSizeDelete {
 
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     public static int sizedelete(Path dir, long cacheSize) throws IOException, InterruptedException {
 
         //System.out.println("folder: "+dir);
@@ -33,17 +34,17 @@ public class CacheSizeDelete {
     public static int deleteOldFiles(Path parentFolder, long limit) {
         List<Path> files = getSortedFilesByDateCreated(parentFolder, true);
         System.out.println("Local cache authorized: "+(limit/(1024*1024))+"MB");
-        long cacheOccupied = DFS3Config.getCacheOccupied();
+        long cacheOccupied = dfs3_ufs1.getCacheOccupied();
         int count=0;
 
         if(cacheOccupied <=limit*0.9){
 
-            System.out.println("Sufficient cache available: "+(DFS3Config.getCacheOccupied()/(1024*1024))+"MB");
+            System.out.println("Sufficient cache available: "+(dfs3_ufs1.getCacheOccupied()/(1024*1024))+"MB");
             return 0;
         }
         else
         {
-            while(DFS3Config.getCacheOccupied() > (limit*0.75))
+            while(dfs3_ufs1.getCacheOccupied() > (limit*0.75))
             {
                 //System.out.println("Oldest file is:"+files.get(0));
                 try {
@@ -55,13 +56,13 @@ public class CacheSizeDelete {
                 files.remove(0);
                 count++;
                 try {
-                    DFS3Config.update(0);
+                    dfs3_ufs1.update(0);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-        System.out.println("Now DFS cache size is: "+ DFS3Config.getCacheOccupied());
+        System.out.println("Now DFS cache size is: "+ dfs3_ufs1.getCacheOccupied());
         return count;
     }
 

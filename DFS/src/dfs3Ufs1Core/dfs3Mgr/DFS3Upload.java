@@ -1,12 +1,12 @@
-package dfsUfsCore.dfsMgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
-import dfsUfsCore.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
 import simulateGC.communication.Sender; // For demo/testing. to be replaced with communication manager post integration with b4mail client.
 import simulateGC.encrypt.*;// For demo/testing. to be replaced with encryption/isec module post integration with b4mail client
-import static dfsUfsCore.dfs3Util.file.*;
+import static dfs3Ufs1Core.dfs3Util.file.*;
 import static simulateGC.encrypt.Encrypt.concat;
 import static simulateGC.encrypt.Hash.hashgenerator;
-import static dfsUfsCore.xmlHandler.XMLWriter.writer;
+import static dfs3Ufs1Core.dfs3xmlHandler.XMLWriter.writer;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -21,7 +21,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import dfsUfsCore.xmlHandler.*;
+import dfs3Ufs1Core.dfs3xmlHandler.*;
 
 import javax.swing.*;
 
@@ -37,6 +37,7 @@ import javax.swing.*;
  * @since DFS2 - 13th Feb 2020, DFS3-July 2020
  */
 public class DFS3Upload {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     //static Boolean fBit= Boolean.TRUE; to be integrated with indexing manager after integration for declaring file perpetual/non-perpetual
     static HashMap<String, String> index=new HashMap<>();
     /**
@@ -64,14 +65,14 @@ public class DFS3Upload {
         //fileSuffix appends timestamp to a file.
         String fileSuffix = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String fileWithTimeStamp = fileName+"@@"+fileSuffix;
-        /*fileURI is the unique URI of a file in name space of P2P network.
+        /* fileURI is the unique URI of a file in name space of P2P network.
         e.g. for DFS -> dfs://ameyrh@iitk.ac.in/abc.pdf@@20210520150655
-        e.g. for UFS -> abc.pdf@@20210520150655*/
-        String fileURI = DFS3Config.getRootInode() + fileWithTimeStamp;
+        e.g. for UFS -> abc.pdf@@20210520150655 */
+        String fileURI = dfs3_ufs1.getRootInode() + fileWithTimeStamp;
         long fileSize = checkFileSize(path);
         //check whether adequate space is available in the user DFS cloud or it is a UFS upload.
         try {
-            long cloudAvlb = DFS3Config.getCloudAvlb();
+            long cloudAvlb = dfs3_ufs1.getCloudAvlb();
             if (cloudAvlb > fileSize || !isDFS) {
                 //System.out.println("File Size is: " + (fileSize / (1024 * 1024)) + "MB");
                 System.out.println("File can be uploaded");
@@ -98,9 +99,10 @@ public class DFS3Upload {
                     else {
                         String fileHash=hashgenerator(plainData);
                         byte [] hashByteArray=fileHash.getBytes();
-                        filePlusKey = concat(hashByteArray,plainData);
-                        System.out.println("Hash length: "+hashByteArray.length);
-                        System.out.println("Hash: "+fileHash);
+                        byte[] signedHash = GenerateKeys.signHash(hashByteArray);
+                        filePlusKey = concat(signedHash,plainData);
+                        System.out.println("Signed Hash length: "+signedHash.length);
+                        System.out.println("Signed Hash: "+fileHash);
                     }
                     encData = ByteBuffer.wrap(filePlusKey);
                     //send the file for segmentation
@@ -109,31 +111,31 @@ public class DFS3Upload {
                     //write inode for the file being uploaded
                     InodeWriter.writeInode(fileWithTimeStamp, fileSize, index, isDFS);
                 }
-                //Retrieve the segments and upload them one by one
+                //Read  the segments from index and upload them one by one
                 String splitFile;
                 if(isDFS)
-                    splitFile = DFS3Config.getDfsCache() + fileWithTimeStamp +"_Inode.csv";
+                    splitFile = dfs3_ufs1.getDfsCache() + fileWithTimeStamp +"_Inode.csv";
                 else
-                    splitFile = DFS3Config.getUfsCache() + fileWithTimeStamp +"_Inode.csv";
+                    splitFile = dfs3_ufs1.getUfsCache() + fileWithTimeStamp +"_Inode.csv";
 
                 String[] segmentInode = csvreader(splitFile, path);
                 for (int i = 0; i < segmentInode.length && !(segmentInode[i] == null); i++) {
                     dispatch(segmentInode[i], i, isDFS);
                 }
-                dfsUfsCore.dfs3Util.file.deleteFile(splitFile);
+                dfs3Ufs1Core.dfs3Util.file.deleteFile(splitFile);
                 //Now uploading the inode of the file
                 String inode;
                 if(isDFS)
-                    inode =  DFS3Config.getDfsCache()+fileWithTimeStamp + "_Inode.xml";
+                    inode =  dfs3_ufs1.getDfsCache()+fileWithTimeStamp + "_Inode.xml";
                 else
-                    inode = DFS3Config.getUfsCache()+ fileWithTimeStamp + "_Inode.xml";
+                    inode = dfs3_ufs1.getUfsCache()+ fileWithTimeStamp + "_Inode.xml";
                 dispatch(inode, 0, isDFS);
                 //Now uploading the updated root directory in the cloud
                 String rootDir;
                 if(isDFS)
-                    rootDir = DFS3Config.getDfsCache()+ "DFSuploaded.csv";
+                    rootDir = dfs3_ufs1.getDfsCache()+ "DFSuploaded.csv";
                 else
-                    rootDir = DFS3Config.getUfsCache()+ "UFSuploaded.csv";
+                    rootDir = dfs3_ufs1.getUfsCache()+ "UFSuploaded.csv";
                 String hashOfFile =hashgenerator(encData.array());
                 if(isDFS) {
                     index(fileURI, hashOfFile, true); // For demo/testing. To be integrated with Indexing manager.
@@ -148,7 +150,7 @@ public class DFS3Upload {
                 System.out.println("Upload completed");
 
                 if(isDFS)
-                    DFS3Config.update(fileSize);
+                    dfs3_ufs1.update(fileSize);
                 else
                     System.out.println("File Successfully uploaded in UFS");
                 dialog.setVisible(false);
@@ -195,11 +197,11 @@ public class DFS3Upload {
         //Generate the inode of segment and compute the hash of the same
         String hashedInode;
         if(isDFS)
-            hashedInode = Hash.hashpath(DFS3Config.getRootInode() + segmentName);
+            hashedInode = Hash.hashpath(dfs3_ufs1.getRootInode() + segmentName);
         else
         if(segmentName.equals("UFSuploaded.csv")) {
-            //String dfsID = DFS3Config.getRootInode();
-            String uploadInode = DFS3Config.getMailID()+"/"+segmentName;
+            //String dfsID = dfs3_ufs1.getRootInode();
+            String uploadInode = dfs3_ufs1.getMailID()+"/"+segmentName;
             hashedInode = Hash.hashpath(uploadInode);
         }
         else
@@ -223,9 +225,9 @@ public class DFS3Upload {
         //Send the file to output buffer.
         DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
         // TODO - query the dht and get the IP
-        Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+        Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
         //Delete the xml file created for transmitting.
-        dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+        dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
     }
 }
 
@@ -233,7 +235,7 @@ public class DFS3Upload {
  * This class is responsible for segmentation of a file into chunk size of 512kB (configurable)
  */
 class Segmentation {
-
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     //Hashmap that stores key and values corresponding to segments.
 
     /**
@@ -295,7 +297,7 @@ class Segmentation {
                 writePartToFile(remainingBytes, position * bytesPerSplit, bis, partFiles, isDFS, fileWithTimeStamp, inode);
             fis.close();
             //Delete the temporary encrypted file
-            dfsUfsCore.dfs3Util.file.deleteFile(tempPath);
+            dfs3Ufs1Core.dfs3Util.file.deleteFile(tempPath);
             //return partFiles;
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -326,9 +328,9 @@ class Segmentation {
         Path segmentName;
         String suffix = ".splitPart";
         if(isDFS)
-            segmentName = Paths.get(DFS3Config.getDfsCache() + fileWithTimeStamp + suffix + (int) ((position / (512 * 1024)) + 1));//TODO - replace the UUID with Integer.toString((position/512) - 1))
+            segmentName = Paths.get(dfs3_ufs1.getDfsCache() + fileWithTimeStamp + suffix + (int) ((position / (512 * 1024)) + 1));//TODO - replace the UUID with Integer.toString((position/512) - 1))
         else
-            segmentName = Paths.get(DFS3Config.getUfsCache() + fileWithTimeStamp + suffix + (int) ((position / (512 * 1024)) + 1));
+            segmentName = Paths.get(dfs3_ufs1.getUfsCache() + fileWithTimeStamp + suffix + (int) ((position / (512 * 1024)) + 1));
         try {
             try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream (segmentName.toString()))) {
 

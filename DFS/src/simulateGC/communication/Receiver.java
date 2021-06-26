@@ -1,18 +1,20 @@
 package simulateGC.communication;
 
-import dfsUfsCore.dfsMgr.DFS3BufferMgr;
-import dfsUfsCore.xmlHandler.XMLReader;
+import dfs3Ufs1Core.dfs3Mgr.DFS3BufferMgr;
+import dfs3Ufs1Core.dfs3xmlHandler.XMLReader;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 public class Receiver {
     public static DFS3BufferMgr inputbuffer = DFS3BufferMgr.getInstance();
-    public static void start() throws IOException {
+    public static void start() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         ServerSocket serverSocket = null;
 
         try {

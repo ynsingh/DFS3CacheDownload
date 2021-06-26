@@ -1,25 +1,31 @@
-package dfsUfsCore.xmlHandler;
-import dfsUfsCore.dfsMgr.DFS3Config;
+package dfs3Ufs1Core.dfs3xmlHandler;
+import dfs3Ufs1Core.dfs3Mgr.DFS3Config;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.FileOutputStream;
+import java.security.PublicKey;
 import java.util.*;
 
 
 public class InodeWriter {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     public static void writeInode(String fileName, long fileSize, HashMap<String, String> index, boolean isDFS)
     {
         try {
             String inode;
-            String fileURI = DFS3Config.getRootInode()+fileName;
+            String fileURI = dfs3_ufs1.getRootInode()+fileName;
             if(isDFS)
                 inode = System.getProperty("user.dir") +
                     System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
             else
                 inode = System.getProperty("user.dir") +
                         System.getProperty("file.separator")+"b4ufs"+System.getProperty("file.separator")+"ufsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
-            System.out.println(inode);
+            //System.out.println(inode);
+            //Read public key from key store
+            PublicKey pubKey= simulateGC.encrypt.Encrypt.getPublic();
+            Base64.Encoder encoder = Base64.getEncoder();
+            String publicKeyStr = encoder.encodeToString(pubKey.getEncoded());
             FileOutputStream fos = new FileOutputStream(inode);
             XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newFactory();
             XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(fos);
@@ -48,7 +54,7 @@ public class InodeWriter {
             //start Author element
             xMLStreamWriter.writeStartElement("Author");
             //write Author attribute
-            xMLStreamWriter.writeCharacters(System.getProperty("user.name"));
+            xMLStreamWriter.writeCharacters(dfs3_ufs1.getMailID());
             //System.out.println(DFS3Config.mailID);
             //end Author
             xMLStreamWriter.writeEndElement();
@@ -77,6 +83,11 @@ public class InodeWriter {
             //write isInode attribute
             xMLStreamWriter.writeCharacters(String.valueOf(true));
             //end isDFS
+            xMLStreamWriter.writeEndElement();
+            //start pubKey
+            xMLStreamWriter.writeStartElement("pubKey");
+            xMLStreamWriter.writeCharacters(publicKeyStr);
+            //end pubKey
             xMLStreamWriter.writeEndElement();
             //write segment key and values
             //xMLStreamWriter.writeStartElement("SplitParts");

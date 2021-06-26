@@ -1,15 +1,16 @@
-package dfsUfsCore.dfsMgr;
+package dfs3Ufs1Core.dfs3Mgr;
 
 import simulateGC.communication.Sender; // Demo/testing. TO be integrated with Communication Manager.
-import dfsUfsCore.dfs3Util.TLVParser;
+import dfs3Ufs1Core.dfs3Util.TLVParser;
 import simulateGC.encrypt.Encrypt; // Demo/testing. TO be integrated with isec/encryption Manager.
+import simulateGC.encrypt.GenerateKeys;
 import simulateGC.encrypt.Hash; //Demo/testing. TO be integrated with isec/encryption Manager
-import dfsUfsCore.xmlHandler.InodeReader;
-import dfsUfsCore.xmlHandler.ReadInode;
+import dfs3Ufs1Core.dfs3xmlHandler.InodeReader;
+import dfs3Ufs1Core.dfs3xmlHandler.ReadInode;
 
-import static dfsUfsCore.dfs3Util.file.*;
+import static dfs3Ufs1Core.dfs3Util.file.*;
 import static simulateGC.encrypt.Hash.comparehash; //Demo/testing. TO be integrated with isec/encryption Manager
-import static dfsUfsCore.xmlHandler.XMLWriter.writer;
+import static dfs3Ufs1Core.dfs3xmlHandler.XMLWriter.writer;
 
 import org.xml.sax.SAXException;
 import javax.swing.*;
@@ -23,8 +24,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 /**
@@ -37,13 +38,14 @@ import java.util.*;
  * @since   15th Feb 2020
  */
 public class Dfs3Download{
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     static String fileName = null;
     static int segmentCount = 0;
     static TreeMap<String, String> splits= new TreeMap<>();
     static String fileURI=null;
     static boolean isDFS;
+    static PublicKey pubKey;
     static JDialog dialog = new JDialog();
-
     /**
      * This method starts the download of the file from DFS.
      * It interacts with the communication manager on behalf of DFS behalf for download process.
@@ -69,15 +71,15 @@ public class Dfs3Download{
         System.out.println("File URI: "+ fileURI);
         String hash;
         //Check whether file is being downloaded using the hash of its inode file in UFS.
-        boolean isHash = Hash.isValidSHA256(fileURI);
+        boolean isHash = Hash.isValidSHA1(fileURI);
         if (isHash) {
             //Fetch inode file from the network
             hash = writer(2, fileURI, "Nothing".getBytes(), true);
             //Send the file to output buffer.
-            DFS3Config.bufferMgr.addToOutputBuffer(new File(hash));
+            dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(hash));
             // TODO - query the dht and get the IP
-            Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-            dfsUfsCore.dfs3Util.file.deleteFile(hash);
+            Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+            dfs3Ufs1Core.dfs3Util.file.deleteFile(hash);
         }
         else
         {
@@ -88,17 +90,17 @@ public class Dfs3Download{
             fileName = parts[i - 1];
             if(isDFS) {
                 //path for inode of the file in xml format in local cache.
-                xmlCachePath= DFS3Config.getDfsCache()+ fileName + "_Inode.xml";
+                xmlCachePath= dfs3_ufs1.getDfsCache()+ fileName + "_Inode.xml";
             }
             else {
-                //In case of UFS, check whether whether file is csv holding index of uploaded file.
+                //In case of UFS, check whether file is csv holding index of uploaded file.
                 if (fileName.equals("UFSuploaded.csv")) {
                     System.out.println(fileName + " being downloaded");
                 } else {
                     //In case of UFS, file is uploaded with file Name itself (without any dfs://emailID.com prefix)
                     fileName = fileURI;
                 }
-                xmlCachePath = DFS3Config.getUfsCache()+ fileName + "_Inode.xml";
+                xmlCachePath = dfs3_ufs1.getUfsCache()+ fileName + "_Inode.xml";
             }
             //Check whether inode xml corresponding to the file exists in cache
             Path file = Paths.get(xmlCachePath);
@@ -106,17 +108,10 @@ public class Dfs3Download{
                 //if inode and file parts available in cache, stitch them from local cache itself
                 System.out.println("File inode found in local cache...");
                 //Create inode object and read using inodeReader xml parser.
-                ReadInode readInode;
-                readInode = dfsUfsCore.xmlHandler.InodeReader.reader(xmlCachePath);
-                //Obtain the split parts Stitch them
-                TreeMap<String, String> splitParts = new TreeMap<>(readInode.getSplitParts());
-                byte[] completeFile = stitchFromCache(splitParts);
-                //Process file for decryption and/or verification.
-                System.out.println("File Stitched");
-                if(isDFS)
-                    postDownload(fileURI, completeFile);
-                else
-                    postDownload(fileName, completeFile);
+                byte[] inodeData = readdata(xmlCachePath);
+                byte[] padding = new byte[16];
+                byte[] inodePadded = simulateGC.encrypt.Encrypt.concat(padding, inodeData);
+                parseInode(inodePadded);
             }
             else {
                 //If file inode not found in the local cache..
@@ -145,10 +140,10 @@ public class Dfs3Download{
                 System.out.println("xmlPath: "+xmlPath);
                 // TODO - retrieve the Ip of the node responsible
                 //Send the file to output buffer.
-                DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
+                dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
                 // TODO - query the dht and get the IP
-                Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-                dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+                Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+                dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
             }
         }
     }//end of start
@@ -161,9 +156,9 @@ public class Dfs3Download{
     private static byte[] stitchFromCache(TreeMap<String, String> splitParts) {
         String dir;
         if(isDFS)
-            dir = DFS3Config.getDfsCache();
+            dir = dfs3_ufs1.getDfsCache();
         else
-            dir = DFS3Config.getUfsCache();
+            dir = dfs3_ufs1.getUfsCache();
         byte[] completeFile = new byte[0];
         Set<String> set = splitParts.keySet();
         Object[] o = set.toArray();
@@ -177,8 +172,6 @@ public class Dfs3Download{
             byte[] segmentData = readdata(splits[i]);
             // concat the segment data to the completefile byte array
             completeFile = Encrypt.concat(completeFile,segmentData);
-            // delete the segments once their data has been read and
-            // concatenated
         }
         return completeFile;
     }
@@ -188,14 +181,15 @@ public class Dfs3Download{
      *<p>2. Sends it for post download encryption and/or verification depending upon DFS/UFS. </p>
      * @param fileURI file URI
      * @param completefile completely stitched file.
+     * @param pubKey public key of the uploader
      */
-    public static void postDownload(String fileURI, byte[] completefile) {
+    public static void postDownload(String fileURI, byte[] completefile, PublicKey pubKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, IOException, InvalidKeyException {
 
         boolean flag;
         if (isDFS)
             flag = dfsDownload(fileURI, completefile);
         else
-            flag = ufsDownload(completefile);
+            flag = ufsDownload(completefile, pubKey);
         JFrame frame;
         frame = new JFrame();
         dialog.setVisible(false);
@@ -215,7 +209,6 @@ public class Dfs3Download{
      */
     private static boolean dfsDownload(String fileURI, byte[] completefile) {
         // compare the hash of completefile with the original filepluskey
-        System.out.println("size of file plus key: "+ completefile.length);
         boolean hashMatch = comparehash(fileURI,completefile, isDFS);
         // retrieve data, decrypt data after decrypting key
         // write the file on decrypting data
@@ -248,14 +241,16 @@ public class Dfs3Download{
     /**
      * <p>1.This method detaches hash of file embedded while uploading.</p>
      * <p>2.writes on local disk if hash is matched with original file hash.</p>
-     * @param completefile completely stitched file.
+     * @param completeFile completely stitched file.
+     * @param pubKey public key of the uploader extracted from inode file.
      * @return boolean flag indicating success/failure.
      */
-    private static boolean ufsDownload(byte[] completefile) {
+    private static boolean ufsDownload(byte[] completeFile, PublicKey pubKey) throws NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, IOException, InvalidKeyException {
 
-        byte[] fileHash= Arrays.copyOf(completefile,64);
-
-        byte[] data = deconcat(completefile,64);
+        //discard first eight bytes of tlv frame
+        byte[] deFramed = deconcat(completeFile, 8);
+        byte[] signedHash= Arrays.copyOf(deFramed,128);
+        byte[] data = deconcat(deFramed,128);
         String hashCalc= null;
         try {
             hashCalc = Hash.hashgenerator(data);
@@ -263,9 +258,11 @@ public class Dfs3Download{
             e.printStackTrace();
         }
         assert hashCalc != null;
-        byte[] hasharray = hashCalc.getBytes();
-        System.out.println("Hash calculated from received file: "+hashCalc);
-        if(Arrays.equals(hasharray,fileHash)) {
+        boolean hashMatch = GenerateKeys.verifyHashK(hashCalc.getBytes(), signedHash, pubKey);
+        //assert hashCalc != null;
+        //byte[] hasharray = hashCalc.getBytes();
+        //System.out.println("Hash calculated from received file: "+hashCalc);
+        if(hashMatch) {
             String[] writePath = fileName.split("@@");
             writeData(data, writePath[0]);
             System.out.println("Download successfully completed!");
@@ -297,7 +294,7 @@ public class Dfs3Download{
         //If not inode, then it is a file segment, send it for reassembly.
         else
         {
-            Reassembly.start(inbound, fileName, isDFS);
+            Reassembly.start(inbound, fileName);
             segmentCount++;
             System.out.println(segmentCount + " files have been downloaded");
             if (fileName.equals("DFSuploaded.csv") || fileName.equals("UFSuploaded.csv")) {
@@ -305,19 +302,21 @@ public class Dfs3Download{
                 so that user can choose file to download.*/
                 System.out.println("Root Directory has been downloaded from the cloud successfully!");
                 segmentCount--; //index file is not part of segment count.
-                ListFiles.start(isDFS);
+                DFS3ListFiles.start(isDFS);
             } else {
                 //Obtain the list of split parts.
                 List<String> splitList = new ArrayList<>(splits.keySet());
                 String[] segmentInodes = splitList.toArray(new String[0]);
+                System.out.println("Total Number of segments: "+segmentInodes.length);
+                //System.out.println("Segments: "+splitList);
                 // if all segments have been downloaded then start stitching them
                 if (segmentCount == segmentInodes.length) {
                     byte[] completeFile = stitchFromCache(splits);
                     System.out.println("File Stitched");
                     if (isDFS)
-                        postDownload(fileURI, completeFile);
+                        postDownload(fileURI, completeFile, pubKey);
                     else
-                        postDownload(fileName, completeFile);
+                        postDownload(fileName, completeFile, pubKey);
                 } else
                     System.out.println("Download in progress");
             }
@@ -332,7 +331,7 @@ public class Dfs3Download{
     private static boolean checkInode(byte[] inbound) {
         String tempXml=System.getProperty("user.dir")+System.getProperty("file.separator")+"temp.xml";
         byte[] data = deconcat(inbound,16);
-        dfsUfsCore.dfs3Util.file.writeData(data, tempXml);
+        dfs3Ufs1Core.dfs3Util.file.writeData(data, tempXml);
 
         String xsd = System.getProperty("user.dir")+System.getProperty("file.separator")+"inode.xsd";
         SchemaFactory sFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -341,12 +340,12 @@ public class Dfs3Download{
             Schema schema = sFactory.newSchema(new File(xsd));
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(new File(tempXml)));
-            dfsUfsCore.dfs3Util.file.deleteFile(tempXml);
+            dfs3Ufs1Core.dfs3Util.file.deleteFile(tempXml);
             return true;
         } catch (SAXException | IOException e) {
             //e.printStackTrace();
             System.out.println("not an inode");
-            dfsUfsCore.dfs3Util.file.deleteFile(tempXml);
+            dfs3Ufs1Core.dfs3Util.file.deleteFile(tempXml);
             return false;
         }
     }
@@ -361,39 +360,65 @@ public class Dfs3Download{
 
         // discard first 16 bytes which indicate type and length.
         byte[] data = deconcat(decoded,16);
-
+        boolean locallyFound;
         String xmlCachePath;
         if(isDFS)
-            xmlCachePath= DFS3Config.getDfsCache()+fileName + "_Inode.xml";
+            xmlCachePath= dfs3_ufs1.getDfsCache()+fileName + "_Inode.xml";
         else
-            xmlCachePath= DFS3Config.getUfsCache()+fileName + "_Inode.xml";
+            xmlCachePath= dfs3_ufs1.getUfsCache()+fileName + "_Inode.xml";
         writeData(data,xmlCachePath);
         ReadInode inodeReader;
         try{
             inodeReader = InodeReader.reader(xmlCachePath);
             fileName=inodeReader.getFileName();
             System.out.println("File Name:" + inodeReader.getFileName());
+            pubKey = inodeReader.getPubKey();
             HashMap<String, String> splitList = inodeReader.getSplitParts();
             splits= new TreeMap<>(splitList);
+            System.out.println(splitList);
             for(String splitPart : splitList.keySet()) {
                 String hashedInode;
-                if(isDFS)
-                    hashedInode = Hash.hashpath(DFS3Config.getRootInode() + splitPart);
+                if(isDFS) {
+                    hashedInode = Hash.hashpath(dfs3_ufs1.getRootInode() + splitPart);
+                    String dfsLocalPath = dfs3_ufs1.getDfsCache()+splitPart;
+                    Path file = Paths.get(dfsLocalPath);
+                    locallyFound=Files.exists(file);
+                }
                 else
+                {
                     hashedInode = Hash.hashpath(splitPart);
+                    String ufsLocalPath = dfs3_ufs1.getUfsCache()+splitPart;
+                    Path file = Paths.get(ufsLocalPath);
+                    locallyFound=Files.exists(file);
+                }
+
                 // xml query  with inode.tag for download is 2
                 //the data filed is blank hence "Nothing" to avoid null pointer exception
-                String xmlPath = writer(2, hashedInode, "localhost".getBytes(), false);
-                if(isDFS)
-                    System.out.println("Query for "+ DFS3Config.getRootInode() + splitPart + " sent to network");
-                else
-                    System.out.println("Query for " + splitPart + " sent to network");
-                System.out.println("Query sent: "+ hashedInode);
-                //Send the file to output buffer.
-                DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
-                // TODO - query the dht and get the IP
-                Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-                dfsUfsCore.dfs3Util.file.deleteFile(xmlPath);
+                if(!locallyFound) {
+                    String xmlPath = writer(2, hashedInode, "nothing".getBytes(), false);
+                    if (isDFS)
+                        System.out.println("Query for " + dfs3_ufs1.getRootInode() + splitPart + " sent to network");
+                    else
+                        System.out.println("Query for " + splitPart + " sent to network");
+                    System.out.println("Query sent: "+ hashedInode);
+                    //Send the file to output buffer.
+                    dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
+                    // TODO - query the dht and get the IP
+                    Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+                    dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
+                }
+                else {
+                    System.out.println(splitPart + " found in local cache");
+                    segmentCount++;
+                    if (segmentCount == splits.size()) {
+                        byte[] completeFile = stitchFromCache(splits);
+                        System.out.println("File Stitched");
+                        if (isDFS)
+                            postDownload(fileURI, completeFile, pubKey);
+                        else
+                            postDownload(fileName, completeFile, pubKey);
+                    }
+                }
             }
         }
         catch(Exception e){
@@ -408,10 +433,9 @@ public class Dfs3Download{
          * Receives various parameters from segment download and sends for sequencing.
           * @param inbound inbound file in byte array form.
          * @param fileName name of the file
-         * @param isDFS whether DFS or UFS
          * @throws IOException in case of IO exception.
          */
-        public static void start(byte[] inbound, String fileName, boolean isDFS) throws IOException {
+        public static void start(byte[] inbound, String fileName) throws IOException {
             sequencing(inbound,fileName);
         }
 
@@ -454,9 +478,9 @@ public class Dfs3Download{
                     System.out.println("Writing segmentInode:" + segmentInode);
                     String writePath;
                     if(isDFS)
-                        writePath = DFS3Config.getDfsCache() + segmentInode;
+                        writePath = dfs3_ufs1.getDfsCache() + segmentInode;
                     else
-                        writePath = DFS3Config.getUfsCache() + segmentInode;
+                        writePath = dfs3_ufs1.getUfsCache() + segmentInode;
                     // write the segmentdata to the segment inode
                     writeData(data, writePath);
                 }

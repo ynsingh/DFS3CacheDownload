@@ -1,7 +1,7 @@
 package simulateGC.encrypt;
 
 
-import dfsUfsCore.dfsMgr.Locate;
+import simulateGC.indexing.Locate;
 
 import java.io.*;
 
@@ -29,7 +29,7 @@ public class Hash {
      */
     public static String hashpath (String key) throws NoSuchAlgorithmException {
 
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        MessageDigest md = MessageDigest.getInstance("SHA1");
         byte[] hashInBytes = md.digest(key.getBytes(StandardCharsets.UTF_8));
         // bytes to hex
         StringBuilder sb = new StringBuilder();
@@ -47,7 +47,7 @@ public class Hash {
      **/
      public static String hashgenerator (byte[] fileData)throws IOException, NoSuchAlgorithmException{
 
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        MessageDigest digest = MessageDigest.getInstance("SHA1");
         InputStream targetStream = new ByteArrayInputStream(fileData);
         byte[] bytesBuffer = new byte[1024];
         int bytesRead;
@@ -87,7 +87,8 @@ public class Hash {
         assert hashOfFile != null;
         return hashOfFile.equals(retrievedValue);
     }
-    public static boolean isValidSHA256(String s) {
-        return s.matches("^[a-fA-F0-9]{64}$");
+    public static boolean isValidSHA1(String s) {
+        return s.matches("^[a-fA-F0-9]{40}$");
     }
+
 }
