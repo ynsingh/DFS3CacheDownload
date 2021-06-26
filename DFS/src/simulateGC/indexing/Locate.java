@@ -21,6 +21,7 @@ import static dfs3Ufs1Core.dfs3xmlHandler.XMLWriter.writer;
  * @since   2020-02-16
  */
 public class Locate {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     /**
      * Starts the Locate process.
      * This method is responsible for receiving the segment inode and locate the
@@ -42,20 +43,13 @@ public class Locate {
         String localPath = csvreader(path, inode);
         // read the file from local path
         byte[] encFile = readdata(localPath);
-        //byte[] xmlData = deconcat(encFile,16);
-        //String tempXml = System.getProperty("user.dir") + System.getProperty("file.separator")+inode+".xml";
-        //dfs3Ufs1Core.dfs3Util.file.writeData(xmlData, tempXml);
-        //System.out.println("reached here:"+xmlpath);
-        //boolean isInode = isInodeReader(tempXml);
-        //System.out.println("isInode:"+isInode);
-        //System.out.println("reached here");
         // reply through XML. tag for reply to download is 20
         String xmlPath = writer(20, inode, encFile, false);
         // TODO - handover the file to file sender and delete the line below
         //Send the file to output buffer.
-        DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
+        dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
         // TODO - query the dht and get the IP
-        Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+        Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
         dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
     }
 

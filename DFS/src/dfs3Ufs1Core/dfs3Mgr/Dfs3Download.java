@@ -38,6 +38,7 @@ import java.util.*;
  * @since   15th Feb 2020
  */
 public class Dfs3Download{
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     static String fileName = null;
     static int segmentCount = 0;
     static TreeMap<String, String> splits= new TreeMap<>();
@@ -75,9 +76,9 @@ public class Dfs3Download{
             //Fetch inode file from the network
             hash = writer(2, fileURI, "Nothing".getBytes(), true);
             //Send the file to output buffer.
-            DFS3Config.bufferMgr.addToOutputBuffer(new File(hash));
+            dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(hash));
             // TODO - query the dht and get the IP
-            Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+            Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
             dfs3Ufs1Core.dfs3Util.file.deleteFile(hash);
         }
         else
@@ -89,7 +90,7 @@ public class Dfs3Download{
             fileName = parts[i - 1];
             if(isDFS) {
                 //path for inode of the file in xml format in local cache.
-                xmlCachePath= DFS3Config.getDfsCache()+ fileName + "_Inode.xml";
+                xmlCachePath= dfs3_ufs1.getDfsCache()+ fileName + "_Inode.xml";
             }
             else {
                 //In case of UFS, check whether file is csv holding index of uploaded file.
@@ -99,7 +100,7 @@ public class Dfs3Download{
                     //In case of UFS, file is uploaded with file Name itself (without any dfs://emailID.com prefix)
                     fileName = fileURI;
                 }
-                xmlCachePath = DFS3Config.getUfsCache()+ fileName + "_Inode.xml";
+                xmlCachePath = dfs3_ufs1.getUfsCache()+ fileName + "_Inode.xml";
             }
             //Check whether inode xml corresponding to the file exists in cache
             Path file = Paths.get(xmlCachePath);
@@ -139,9 +140,9 @@ public class Dfs3Download{
                 System.out.println("xmlPath: "+xmlPath);
                 // TODO - retrieve the Ip of the node responsible
                 //Send the file to output buffer.
-                DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
+                dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
                 // TODO - query the dht and get the IP
-                Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+                Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
                 dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
             }
         }
@@ -155,9 +156,9 @@ public class Dfs3Download{
     private static byte[] stitchFromCache(TreeMap<String, String> splitParts) {
         String dir;
         if(isDFS)
-            dir = DFS3Config.getDfsCache();
+            dir = dfs3_ufs1.getDfsCache();
         else
-            dir = DFS3Config.getUfsCache();
+            dir = dfs3_ufs1.getUfsCache();
         byte[] completeFile = new byte[0];
         Set<String> set = splitParts.keySet();
         Object[] o = set.toArray();
@@ -171,8 +172,6 @@ public class Dfs3Download{
             byte[] segmentData = readdata(splits[i]);
             // concat the segment data to the completefile byte array
             completeFile = Encrypt.concat(completeFile,segmentData);
-            // delete the segments once their data has been read and
-            // concatenated
         }
         return completeFile;
     }
@@ -364,9 +363,9 @@ public class Dfs3Download{
         boolean locallyFound;
         String xmlCachePath;
         if(isDFS)
-            xmlCachePath= DFS3Config.getDfsCache()+fileName + "_Inode.xml";
+            xmlCachePath= dfs3_ufs1.getDfsCache()+fileName + "_Inode.xml";
         else
-            xmlCachePath= DFS3Config.getUfsCache()+fileName + "_Inode.xml";
+            xmlCachePath= dfs3_ufs1.getUfsCache()+fileName + "_Inode.xml";
         writeData(data,xmlCachePath);
         ReadInode inodeReader;
         try{
@@ -380,15 +379,15 @@ public class Dfs3Download{
             for(String splitPart : splitList.keySet()) {
                 String hashedInode;
                 if(isDFS) {
-                    hashedInode = Hash.hashpath(DFS3Config.getRootInode() + splitPart);
-                    String dfsLocalPath = DFS3Config.getDfsCache()+splitPart;
+                    hashedInode = Hash.hashpath(dfs3_ufs1.getRootInode() + splitPart);
+                    String dfsLocalPath = dfs3_ufs1.getDfsCache()+splitPart;
                     Path file = Paths.get(dfsLocalPath);
                     locallyFound=Files.exists(file);
                 }
                 else
                 {
                     hashedInode = Hash.hashpath(splitPart);
-                    String ufsLocalPath = DFS3Config.getUfsCache()+splitPart;
+                    String ufsLocalPath = dfs3_ufs1.getUfsCache()+splitPart;
                     Path file = Paths.get(ufsLocalPath);
                     locallyFound=Files.exists(file);
                 }
@@ -396,16 +395,16 @@ public class Dfs3Download{
                 // xml query  with inode.tag for download is 2
                 //the data filed is blank hence "Nothing" to avoid null pointer exception
                 if(!locallyFound) {
-                    String xmlPath = writer(2, hashedInode, "localhost".getBytes(), false);
+                    String xmlPath = writer(2, hashedInode, "nothing".getBytes(), false);
                     if (isDFS)
-                        System.out.println("Query for " + DFS3Config.getRootInode() + splitPart + " sent to network");
+                        System.out.println("Query for " + dfs3_ufs1.getRootInode() + splitPart + " sent to network");
                     else
                         System.out.println("Query for " + splitPart + " sent to network");
                     System.out.println("Query sent: "+ hashedInode);
                     //Send the file to output buffer.
-                    DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
+                    dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
                     // TODO - query the dht and get the IP
-                    Sender.start(DFS3Config.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+                    Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
                     dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
                 }
                 else {
@@ -479,9 +478,9 @@ public class Dfs3Download{
                     System.out.println("Writing segmentInode:" + segmentInode);
                     String writePath;
                     if(isDFS)
-                        writePath = DFS3Config.getDfsCache() + segmentInode;
+                        writePath = dfs3_ufs1.getDfsCache() + segmentInode;
                     else
-                        writePath = DFS3Config.getUfsCache() + segmentInode;
+                        writePath = dfs3_ufs1.getUfsCache() + segmentInode;
                     // write the segmentdata to the segment inode
                     writeData(data, writePath);
                 }

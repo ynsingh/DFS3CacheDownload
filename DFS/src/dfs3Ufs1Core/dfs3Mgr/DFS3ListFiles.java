@@ -21,6 +21,7 @@ import java.util.Scanner;
  * @since   15th Feb 2020
  */
 public class DFS3ListFiles {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     // for using the comma as delimiter in csv
     // any symbol can be used such as : or ::
     private final static String CSV_DELIMIT = ",";
@@ -31,13 +32,13 @@ public class DFS3ListFiles {
      * download and delete buttons.
      * @throws IOException for input output exception
      * @throws IllegalArgumentException if illegal argument such as null are passed
-     * @param isDFS
+     * @param isDFS boolean indicating DFS or UFS operation
      */
     public static void start(boolean isDFS) throws IllegalArgumentException, IOException {
 
         String fileName1 = "DFSuploaded.csv";
         String fileName2 = "UFSuploaded.csv";
-        TableModel tableModel = null;
+        TableModel tableModel;
         //Table related tasks
         if(isDFS)
             tableModel = array2table(csv2array(fileName1, isDFS));
@@ -153,7 +154,7 @@ public class DFS3ListFiles {
     public static ArrayList<ArrayList<String>> csv2array(String fileName, boolean isDFS)
             throws IOException {
         ArrayList<ArrayList<String>> table = new ArrayList<>();
-        String path=null;
+        String path;
         if(isDFS)
             path = System.getProperty("user.dir") + System.getProperty("file.separator") + "b4dfs" + System.getProperty("file.separator") + "dfsCache"+System.getProperty("file.separator")+ fileName;
         else
@@ -180,10 +181,10 @@ public class DFS3ListFiles {
         else
         {
             System.out.println("Root Directory not found locally, being downloaded from the cloud, please wait..");
-            String rootDirURI=null;
+            String rootDirURI;
             if(isDFS)
             {
-                rootDirURI= DFS3Config.getRootInode()+fileName;
+                rootDirURI= dfs3_ufs1.getRootInode()+fileName;
                 try {
                     Dfs3Download.start(rootDirURI, isDFS);
                 } catch (GeneralSecurityException e) {
@@ -193,7 +194,7 @@ public class DFS3ListFiles {
             }
             else
             {
-                String dfsID= DFS3Config.getRootInode();
+                String dfsID= dfs3_ufs1.getRootInode();
                 rootDirURI=dfsID.split("/")[2]+"/"+fileName;
                 try {
                     Dfs3Download.start(rootDirURI, isDFS);

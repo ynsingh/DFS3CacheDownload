@@ -9,11 +9,12 @@ import java.util.*;
 
 
 public class InodeWriter {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     public static void writeInode(String fileName, long fileSize, HashMap<String, String> index, boolean isDFS)
     {
         try {
             String inode;
-            String fileURI = DFS3Config.getRootInode()+fileName;
+            String fileURI = dfs3_ufs1.getRootInode()+fileName;
             if(isDFS)
                 inode = System.getProperty("user.dir") +
                     System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsCache"+System.getProperty("file.separator") + fileName + "_Inode.xml";
@@ -53,7 +54,7 @@ public class InodeWriter {
             //start Author element
             xMLStreamWriter.writeStartElement("Author");
             //write Author attribute
-            xMLStreamWriter.writeCharacters(System.getProperty("user.name"));
+            xMLStreamWriter.writeCharacters(dfs3_ufs1.getMailID());
             //System.out.println(DFS3Config.mailID);
             //end Author
             xMLStreamWriter.writeEndElement();

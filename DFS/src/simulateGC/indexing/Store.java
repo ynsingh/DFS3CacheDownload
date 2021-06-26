@@ -26,6 +26,7 @@ import static dfs3Ufs1Core.dfs3Util.file.*;
  * @since   15th Feb 2020
  */
 public class Store {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     /**
      * Starts the store process
      * <p> This method executes all the functions related to storing
@@ -46,7 +47,7 @@ public class Store {
             InvalidKeyException, InvalidKeySpecException {
         //TODO - receive the inode and hash from Xml handler with request to store
         //retrieve the signed hash and encrypted File
-        String writepath = DFS3Config.getDfsSrvr()+hashedInode;
+        String writepath = dfs3_ufs1.getDfsSrvr()+hashedInode;
         byte[] signedHash = TLVParser.startParsing(dataInbound, 1);
         //retrieve the encrypted file by removing the length of signed hash + tag + length
         byte[] encFile = deconcat(dataInbound,signedHash.length+8);
@@ -61,9 +62,8 @@ public class Store {
             // initialise replication
             //initReplicate(encFile,hashedInode);
             File segment = new File(writepath);
-            long segmentSize = segment.length();
-            DFS3Config.setLocalOccupied();
-            DFS3Config.setLocalBalance();
+            dfs3_ufs1.setLocalOccupied();
+            dfs3_ufs1.setLocalBalance();
         } else
           System.out.println("hash mismatch cant store file");
     }//end of start

@@ -13,6 +13,7 @@ import java.awt.Toolkit;
  */
 
 public class CacheScheduler {
+    static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     Toolkit toolkit;
     Timer timer;
 
@@ -27,11 +28,11 @@ public class CacheScheduler {
     static class RemindTask extends TimerTask {
 
         public void run() {
-            Path cachePath= Paths.get(DFS3Config.getDfsCache());
+            Path cachePath= Paths.get(dfs3_ufs1.getDfsCache());
             try {
                 //int i = CacheOldDelete.oldDelete(cachePath,15);
                 //System.out.println(i+" Files older than 15 days deleted from Cache");
-                int j = CacheSizeDelete.sizedelete(cachePath, DFS3Config.getLocalCacheSize());
+                int j = CacheSizeDelete.sizedelete(cachePath, dfs3_ufs1.getLocalCacheSize());
                 System.out.println(j+" Older files exceeding cache size deleted from Cache");
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
