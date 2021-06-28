@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="DFS3_UFS1:jar">
+    <output-path>$PROJECT_DIR$/DFS/JAR</output-path>
+    <root id="archive" name="DFS3CacheDownload.jar">
+      <element id="module-output" name="DFS3CacheDownload" />
+    </root>
+  </artifact>
+</component>
