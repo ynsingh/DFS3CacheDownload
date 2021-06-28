@@ -1,6 +1,6 @@
 package com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Mgr;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,7 +27,7 @@ public class DFS3Config implements Serializable  {
     private static final long serialVersionUID = 1L;
     private static volatile DFS3Config config;
     public static DFS3BufferMgr bufferMgr = DFS3BufferMgr.getInstance();
-    private static final Logger log = Logger.getLogger(DFS3Config.class);
+   // private static final Logger log = Logger.getLogger(DFS3Config.class);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
