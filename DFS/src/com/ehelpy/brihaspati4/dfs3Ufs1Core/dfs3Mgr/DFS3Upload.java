@@ -150,7 +150,7 @@ public class DFS3Upload {
                 System.out.println("Upload completed");
 
                 if(isDFS)
-                    dfs3_ufs1.update(fileSize);
+                    dfs3_ufs1.updateUpload(fileSize);
                 else
                     System.out.println("File Successfully uploaded in UFS");
                 dialog.setVisible(false);

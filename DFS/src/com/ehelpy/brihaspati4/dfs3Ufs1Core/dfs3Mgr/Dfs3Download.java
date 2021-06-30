@@ -190,6 +190,9 @@ public class Dfs3Download{
             flag = dfsDownload(fileURI, completefile);
         else
             flag = ufsDownload(completefile, pubKey);
+        segmentCount=0;
+        splits.clear();
+        dfs3_ufs1.setCacheOccupied();
         JFrame frame;
         frame = new JFrame();
         dialog.setVisible(false);
@@ -197,8 +200,6 @@ public class Dfs3Download{
             JOptionPane.showMessageDialog(frame,"Download successful!","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
         else
             JOptionPane.showMessageDialog(frame,"Download failed!","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
-        segmentCount=0;
-        splits.clear();
     }
 
     /**

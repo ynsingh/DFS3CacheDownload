@@ -55,11 +55,7 @@ public class CacheSizeDelete {
                 }
                 files.remove(0);
                 count++;
-                try {
-                    dfs3_ufs1.update(0);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                dfs3_ufs1.setCacheOccupied();
             }
         }
         System.out.println("Now DFS cache size is: "+ dfs3_ufs1.getCacheOccupied());
