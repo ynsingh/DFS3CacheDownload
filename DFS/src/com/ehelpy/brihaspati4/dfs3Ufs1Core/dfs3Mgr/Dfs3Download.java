@@ -78,7 +78,7 @@ public class Dfs3Download{
             //Send the file to output buffer.
             dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(hash));
             // TODO - query the dht and get the IP
-            Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+            Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "192.168.56.125"); //simulates communication manager.
             com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.file.deleteFile(hash);
         }
         else
@@ -137,13 +137,13 @@ public class Dfs3Download{
                     xmlPath = writer(2, hashedInode, "Nothing".getBytes(), false);
                 else
                     xmlPath = writer(2, hashedInode, "Nothing".getBytes(), true);
-                System.out.println("xmlPath: "+xmlPath);
+                //System.out.println("xmlPath: "+xmlPath);
                 // TODO - retrieve the Ip of the node responsible
                 //Send the file to output buffer.
                 dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
                 // TODO - query the dht and get the IP
-                Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
-                com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
+                Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "192.168.56.125"); //simulates communication manager.
+                //com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
             }
         }
     }//end of start
@@ -405,7 +405,7 @@ public class Dfs3Download{
                     //Send the file to output buffer.
                     dfs3_ufs1.bufferMgr.addToOutputBuffer(new File(xmlPath));
                     // TODO - query the dht and get the IP
-                    Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+                    Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "192.168.56.125"); //simulates communication manager.
                     com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
                 }
                 else {

@@ -226,7 +226,7 @@ public class DFS3Upload {
         //Send the file to output buffer.
         DFS3Config.bufferMgr.addToOutputBuffer(new File(xmlPath));
         // TODO - query the dht and get the IP
-        Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "localhost"); //simulates communication manager.
+        Sender.start(dfs3_ufs1.bufferMgr.fetchFromOutputBuffer(), "192.168.56.125"); //simulates communication manager.
         //Delete the xml file created for transmitting.
         com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.file.deleteFile(xmlPath);
     }
