@@ -1,6 +1,9 @@
 package com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Mgr;
 
 
+import com.ehelpy.brihaspati4.simulateGC.communication.Receiver;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,7 +20,7 @@ public class DFS3BufferMgr {
     private static final ReentrantLock inputBufferLock = new ReentrantLock();
     private static final ReentrantLock outputBufferLock = new ReentrantLock();
     private static DFS3BufferMgr dfsBufferMgr;
-    //private static final Logger log = Logger.getLogger(RoutingManagerBuffer.class);
+    private static final Logger log = Logger.getLogger(Receiver.class.getName());
 
     /**
      * This is the default constructor of the class.
@@ -52,8 +55,7 @@ public class DFS3BufferMgr {
         inputBufferLock.lock();
         inputDFSBuffer.add(file);
         file.deleteOnExit();
-        System.out.println("File added to Input buffer");
-        //log.debug("File added to Input buffer");
+        log.debug("File added to Input buffer");
         inputBufferLock.unlock();
         return true;
     }
@@ -69,8 +71,7 @@ public class DFS3BufferMgr {
             file = inputDFSBuffer.get(0);
             inputDFSBuffer.remove(0);
         } catch(Exception e) {
-            System.out.println("There is no File in Input Buffer");
-            //log.debug("There is no File in Input Buffer");
+            log.debug("There is no File in Input Buffer");
         }
         inputBufferLock.unlock();
         return file;
@@ -83,8 +84,7 @@ public class DFS3BufferMgr {
     public boolean addToOutputBuffer(File file) {
         outputBufferLock.lock();
         outputDFSBuffer.add(file);
-        System.out.println("File added to Output buffer");
-        //log.debug("File added to Output buffer");
+        log.debug("File added to Output buffer");
         file.deleteOnExit();
         outputBufferLock.unlock();
         return true;
@@ -101,8 +101,7 @@ public class DFS3BufferMgr {
             file = outputDFSBuffer.get(0);
             outputDFSBuffer.remove(0);
         } catch(Exception e) {
-            System.out.println("There is no File in Output Buffer");
-            //log.debug("There is no File in Output Buffer");
+            log.debug("There is no File in Output Buffer");
         }
         outputBufferLock.unlock();
         return file;

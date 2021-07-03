@@ -4,12 +4,8 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,9 +19,9 @@ import javax.swing.*;
  * <p>2. Reads the stored state and resumes DFS as regular initialization</p>
  * <p>3. Creates singleton object</p>
  */
-public class DFS3Config implements Serializable  {
+@SuppressWarnings("SpellCheckingInspection")
+public class DFS3Config {
 
-    private static final long serialVersionUID = 1L;
     private static volatile DFS3Config config;
     public static DFS3BufferMgr bufferMgr = DFS3BufferMgr.getInstance();
     private static final Logger log = Logger.getLogger(DFS3Config.class.getName());
@@ -42,16 +38,21 @@ public class DFS3Config implements Serializable  {
      * Getter for root Inode of DFS
      * @return root Inode of the DFS
      */
-    public String getRootInode() { return config.rootInode; }
+    public String getRootInode() {
+        config.rootInode=prop.getProperty("rootDir");
+        return config.rootInode; }
 
     String mailID; //Stores email ID of the user registered with Brihaspati-4.
     /**
      * Getter for email ID of the user.
      * @return String mailID.
      */
-    public String getMailID() { return config.mailID;}
+    public String getMailID() {
+        config.mailID=prop.getProperty("mailID");
+        return config.mailID;}
     private void setMailID(String mailID) {
         config.mailID = mailID;
+        prop.setProperty("mailID", config.mailID);
     }
     private String dfsDir;
     public String getDfsDir() {
@@ -95,7 +96,9 @@ public class DFS3Config implements Serializable  {
      * Getter for the localOffered
      * @return the localOffered
      */
-    public long getLocalOffered() { return config.localOffered; }
+    public long getLocalOffered() {
+        config.localOffered= Long.parseLong(prop.getProperty("localOffered"));
+        return config.localOffered; }
 
     private long localOccupied; //Stores amount of local disk space occupied at the node by DFS as part of the cloud.
 
@@ -103,8 +106,8 @@ public class DFS3Config implements Serializable  {
      * Setter for localOccupied
      */
     public void setLocalOccupied() {
-        String dfsSrvr=config.dfsDir+System.getProperty("file.separator")+"dfsSrvr";
-        File file = new File(dfsSrvr);
+
+        File file = new File(config.getDfsSrvr());
         File[] files = file.listFiles();
         long length = 0;
         int count;
@@ -115,17 +118,16 @@ public class DFS3Config implements Serializable  {
             length += files[i].length();
         }
         config.localOccupied=length;
-        boolean flag = config.writeConfig(config);
-        if(flag)
-            System.out.println("Local occupied Updated: "+ (config.localOccupied/(1024*1024))+"MB");
-        else
-            System.out.println("Local occupied Update failed");
+        prop.setProperty("localOccupied", String.valueOf(config.localOccupied));
+        log.debug("Local occupied Updated: "+ (config.localOccupied/(1024*1024))+"MB");
     }
     /**
      * Getter for localOccupied
      * @return the localOccupied
      */
     public long getLocalOccupied()  {
+
+        config.localOccupied=Long.parseLong(prop.getProperty("localOccupied"));
         return config.localOccupied;
     }
 
@@ -134,7 +136,9 @@ public class DFS3Config implements Serializable  {
      * Getter for localFree
      * @return long localFree
      */
-    public long getLocalFree() { return config.localFree;}
+    public long getLocalFree() {
+        config.localFree=Long.parseLong(prop.getProperty("localFree"));
+        return config.localFree;}
 
     /**
      *Setter for localFree
@@ -143,11 +147,8 @@ public class DFS3Config implements Serializable  {
         String cwd=System.getProperty("user.dir");
         File cwDir = new File(cwd);
         config.localFree=cwDir.getFreeSpace();
-        boolean flag = config.writeConfig(config);
-        if(flag)
-            System.out.println("Local free Updated: "+ (config.localFree/(1024*1024))+"MB");
-        else
-            System.out.println("Local free Update failed");
+        prop.setProperty("localFree",String.valueOf(config.localFree));
+        log.debug("Local free Updated: "+ (config.localFree/(1024*1024))+"MB.");
     }
 
     private long localBalance; //variable that maintains balance of the local space that was initially offered.
@@ -156,18 +157,17 @@ public class DFS3Config implements Serializable  {
      * Getter for localBalance
      * @return long localBalance
      */
-    public long getLocalBalance() { return localBalance; }
+    public long getLocalBalance() {
+        config.localBalance=Long.parseLong(prop.getProperty("localBalance"));
+        return config.localBalance; }
 
     /**
      * Setter for long localBalance
      */
     public void setLocalBalance() {
-        localBalance = config.getLocalOffered()-config.getLocalOccupied();
-        boolean flag = config.writeConfig(config);
-        if (flag)
-            System.out.println("Local balance space updated successfully");
-        else
-            System.out.println("Local balance space update failed");
+        config.localBalance = config.getLocalOffered()-config.getLocalOccupied();
+        prop.setProperty("localBalance", String.valueOf(config.localBalance));
+        log.debug("Local balance space updated successfully");
     }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,22 +179,26 @@ public class DFS3Config implements Serializable  {
      * Getter for Cloud space authorized.
      * @return the cloudAuth
      */
-    public long getCloudAuth() { return config.cloudAuth; }
+    public long getCloudAuth() {
+        config.cloudAuth=Long.parseLong(prop.getProperty("cloudAuth"));
+        return  config.cloudAuth; }
 
     private long cloudOccupied;
     /**
      * @return the Cloud Occupied
      */
-    public long getCloudOccupied() { return config.cloudOccupied; }
+    public long getCloudOccupied() {
+        config.cloudOccupied=Long.parseLong(prop.getProperty("cloudOccupied"));
+        return config.cloudOccupied; }
 
     /**
      * @param fileSize file size is added to cloudOccupied.
      */
     public void setCloudOccupied(long fileSize) {
-        config.cloudOccupied = config.cloudOccupied + fileSize;
-        boolean flag = config.writeConfig(config);
-        if(flag)
-            System.out.println("Cloud occupied Updated: " + (config.cloudOccupied / (1024 * 1024)) + "MB");
+        config.cloudOccupied = Long.parseLong(prop.getProperty("cloudOccupied")) + fileSize;
+        prop.setProperty("cloudOccupied",String.valueOf(config.cacheOccupied));
+        log.debug("Cloud occupied Updated: " + (config.cloudOccupied / (1024 * 1024)) + "MB");
+
     }
 
     private long cloudAvlb;
@@ -202,36 +206,40 @@ public class DFS3Config implements Serializable  {
      * Getter for Cloud Available.
      * @return the cloudAvlb
      */
-    public long getCloudAvlb() throws IOException { return config.cloudAvlb; }
+    public long getCloudAvlb() throws IOException {
+        config.cloudAvlb=Long.parseLong(prop.getProperty("cloudAvlb"));
+        return config.cloudAvlb;  }
 
     /**
      * @param  cloudOccupied long cloud occupied file size.
      */
     public void setCloudAvlb(long cloudOccupied) {
         config.cloudAvlb = config.cloudAvlb - cloudOccupied;
-        boolean flag = config.writeConfig(config);
-        if (flag)
-            System.out.println("Cloud available Updated: " + (config.cloudAvlb / (1024 * 1024)) + "MB");
-        else
-            System.out.println("Cloud Available update filed");
+        prop.setProperty("cloudAvlb", String.valueOf(config.cloudAvlb));
+        log.debug("Cloud available Updated: " + (config.cloudAvlb / (1024 * 1024)) + "MB");
+
     }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // All local cache related variables.
     private long localCacheSize;
-    public long getLocalCacheSize() { return config.localCacheSize; }
+    public long getLocalCacheSize() { return Long.parseLong(prop.getProperty("localCacheSize")); }
 
     long cacheOccupied;
     /**
      * @return the cacheOccupied
      */
-    public long getCacheOccupied() { return cacheOccupied; }
+    public long getCacheOccupied()
+    {
+        if(prop.getProperty("cacheOccupied")==null)
+            return 0;
+        else
+            return Long.parseLong(prop.getProperty("cacheOccupied"));
+    }
 
     public void setCacheOccupied() {
 
-        String cache = config.getDfsCache();
-        //System.out.println(cache);
         File cacheDir = new File(config.getDfsCache());
         File[] files = cacheDir.listFiles();
         long length = 0;
@@ -241,12 +249,10 @@ public class DFS3Config implements Serializable  {
         for (int i = 0; i < count; i++) {
             length += files[i].length();
         }
-        cacheOccupied=length;
-        boolean flag = config.writeConfig(config);
-        if(flag)
-            System.out.println("Cache Size Updated.."+ (cacheOccupied/(1024*1024))+"MB");
-        else
-            System.out.println("Cache Size Updated failed");
+        config.cacheOccupied=length;
+        prop.setProperty("cacheOccupied", String.valueOf(config.cacheOccupied));
+        log.debug("Cache Size Updated.."+ (cacheOccupied/(1024*1024))+"MB");
+
     }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -271,7 +277,7 @@ public class DFS3Config implements Serializable  {
         if (config == null) { //if there is no instance available... create new one
             synchronized (DFS3Config.class) {
                 if (config == null) config = new DFS3Config();
-                configFile=config.getDfsDir()+ "configFile.txt";
+                configFile=config.getDfsDir()+ "dfsconfig.properties";
                 File configfile = new File(configFile);
                 if(!configfile.exists())
                     config.firstInit();
@@ -298,51 +304,6 @@ public class DFS3Config implements Serializable  {
     //Methods for reading, writing configuration file and updating state variables.
 
     /**
-     * Method to deserialize the object and write the config file on the disk
-     * @param config singleton object config.
-     * @return success or failure flag.
-     */
-    private boolean writeConfig(DFS3Config config) {
-        try {
-            FileOutputStream fos = new FileOutputStream(configFile);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(config);
-            oos.close();
-            fos.flush();
-            fos.close();
-            //System.out.println("DFS Config file updated successfully");
-            return true;
-        } catch(Exception e) {
-            e.printStackTrace();
-            System.out.println("Failed to write configuration in file");
-            return false;
-        }
-    }
-
-    /**
-     * Method to read the state variables from the config file.
-     * @return flag for success or failure.
-     */
-    private boolean readConfig() {
-        boolean result = false;
-        try {
-            FileInputStream fis = new FileInputStream(configFile);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            config = (DFS3Config) ois.readObject();
-            ois.close();
-            fis.close();
-            result = true;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("Config File not found");
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("Error in config file reading");
-        }
-        return result;
-    }
-
-    /**
      * Reads the congiguration file and loads the state values in the DFS object.
      * @return boolean flag as success or failure
      */
@@ -354,8 +315,8 @@ public class DFS3Config implements Serializable  {
             prop.load(fis);
 
             config.rootInode=prop.getProperty("rootDir");
-            config.setMailID(prop.getProperty("mailID"));
-            config.dfsDir=(prop.getProperty("dfsDir"));
+            config.mailID=prop.getProperty("mailID");
+            config.dfsDir=prop.getProperty("dfsDir");
             config.dfsCache=prop.getProperty("dfsCache");
             config.ufsCache=prop.getProperty("ufsCache");
             config.dfsSrvr=prop.getProperty("dfsSrvr");
@@ -366,7 +327,6 @@ public class DFS3Config implements Serializable  {
             config.cloudOccupied=Long.parseLong(prop.getProperty("cloudOccupied"));
             config.cloudAuth=Long.parseLong(prop.getProperty("cloudAuth"));
             config.cloudAvlb=Long.parseLong(prop.getProperty("cloudAvlb"));
-            config.cloudOccupied=Long.parseLong(prop.getProperty("cloudOccupied"));
             config.localCacheSize=Long.parseLong(prop.getProperty("localCacheSize"));
             config.setCacheOccupied();
 
@@ -387,18 +347,20 @@ public class DFS3Config implements Serializable  {
      * @throws IOException in case of IO exception
      */
     public void updateUpload(long fileSize) throws IOException {
-        setCloudOccupied(fileSize);
-        setCloudAvlb(config.getCloudOccupied());
-        setCacheOccupied();
-        boolean flag = config.writeProperties();
-        if(flag) {
-            System.out.println("Now cloud occupied is: " + (config.getCloudOccupied()/(1024*1024))+"MB");
-            System.out.println("Now cloud available is: " + (config.getCloudAvlb()/(1024*1024))+"MB");
+        try{
+            String configFile = System.getProperty("user.dir")+System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsconfig.properties";
+            FileOutputStream fos = new FileOutputStream(configFile);
+            setCloudOccupied(fileSize);
+            setCloudAvlb(config.getCloudOccupied());
+            setCacheOccupied();
             log.debug("DFS state update after upload successful.");
-        }
-        else {
-            System.out.println("DFS config update failed");
-            log.debug("DFS state update after upload failed");
+            prop.store(fos, null);
+            log.debug("Config file write successful.");
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.debug("Config file write failed.");
         }
     }
 
@@ -408,21 +370,21 @@ public class DFS3Config implements Serializable  {
             String configFile = System.getProperty("user.dir")+System.getProperty("file.separator")+"b4dfs"+System.getProperty("file.separator")+"dfsconfig.properties";
             FileOutputStream fos = new FileOutputStream(configFile);
 
-            prop.setProperty("rootDir", getRootInode());
-            prop.setProperty("mailID", getMailID());
-            prop.setProperty("dfsDir", getDfsDir());
-            prop.setProperty("dfsCache", getDfsCache());
-            prop.setProperty("ufsCache", getUfsCache());
-            prop.setProperty("dfsSrvr", getDfsSrvr());
-            prop.setProperty("localOffered", String.valueOf(getLocalOffered()));
-            prop.setProperty("localOccupied", String.valueOf(getLocalOccupied()));
-            prop.setProperty("localFree", String.valueOf(getLocalFree()));
-            prop.setProperty("localBalance", String.valueOf(getLocalBalance()));
-            prop.setProperty("cloudAuth", String.valueOf(getCloudAuth()));
-            prop.setProperty("cloudAvlb", String.valueOf(getCloudAvlb()));
-            prop.setProperty("cloudOccupied", String.valueOf(getCloudOccupied()));
-            prop.setProperty("localCacheSize", String.valueOf(getLocalCacheSize()));
-            prop.setProperty("CacheOccupied", String.valueOf(getCacheOccupied()));
+            prop.setProperty("rootDir", config.rootInode);
+            prop.setProperty("mailID", config.mailID);
+            prop.setProperty("dfsDir", config.dfsDir);
+            prop.setProperty("dfsCache", config.dfsCache);
+            prop.setProperty("ufsCache", config.ufsCache);
+            prop.setProperty("dfsSrvr", config.dfsSrvr);
+            prop.setProperty("localOffered", String.valueOf(config.localOffered));
+            prop.setProperty("localOccupied", String.valueOf(config.localOccupied));
+            prop.setProperty("localFree", String.valueOf(config.localFree));
+            prop.setProperty("localBalance", String.valueOf(config.localBalance));
+            prop.setProperty("cloudAuth", String.valueOf(config.cloudAuth));
+            prop.setProperty("cloudAvlb", String.valueOf(config.cloudAvlb));
+            prop.setProperty("cloudOccupied", String.valueOf(config.cloudOccupied));
+            prop.setProperty("localCacheSize", String.valueOf(config.localCacheSize));
+            prop.setProperty("cacheOccupied", String.valueOf(config.cacheOccupied));
 
             prop.store(fos, null);
 
@@ -528,9 +490,7 @@ public class DFS3Config implements Serializable  {
             System.out.println("UFS directory created successfully");
             Files.createDirectory(pathuCache);
             System.out.println("UFS cache directory created successfully");
-            setCacheOccupied();
-            setLocalOccupied();
-            setLocalBalance();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -545,14 +505,6 @@ public class DFS3Config implements Serializable  {
             JOptionPane.showMessageDialog(frame,"DFS initialization failed.\nUFS initialization failed","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
 
         }
-/*
-        //Deserialize the object and write the config file in local disk.
-        boolean flag = writeConfig(config);
-        if(flag)
-            JOptionPane.showMessageDialog(frame,"DFS initialized successfully.\nUFS initialized successfully","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
-        else
-            JOptionPane.showMessageDialog(frame,"DFS initialization failed.\nUFS initialization failed","Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
-*/
     }
 
     /**
@@ -568,14 +520,6 @@ public class DFS3Config implements Serializable  {
         boolean readConfig=readProperties();
         if(readConfig)
         {
-            System.out.println("Your root inode is: "+config.rootInode);
-            System.out.println("Your authorized cloud space is: "+ (config.getCloudAuth()/(1024*1024*1024))+"GB");
-            System.out.println("You have already used: "+ (getCloudOccupied()/(1024*1024))+"MB cloud space");
-            System.out.println("Cloud space available is:" + (getCloudAvlb()/(1024*1024))+"MB");
-            /*setCacheOccupied();
-            setLocalOccupied();
-            setLocalBalance();
-            setLocalFree(); */
             //Welcome back and state showing message. To be stripped off when common GUI is developed.
             JOptionPane.showMessageDialog(frame,"Welcome back to B4 DFS/UFS.\n"+
                             "Cloud space utilization: "+(getCloudOccupied()/(1024*1024))+"MB / "+(getCloudAuth()/(1024*1024))+"MB\n"
@@ -583,11 +527,9 @@ public class DFS3Config implements Serializable  {
                             +"Local space utilization: "+ (getLocalOccupied()/(1024*1024))+"MB / "+(getLocalOffered()/(1024*1024))+"MB\n",
                     "Brihaspati-4 DFS/UFS",JOptionPane.PLAIN_MESSAGE);
             //Check whether adequate local space as initially offered is available or not.
-            System.out.println("local space available for DFS: "+(getLocalBalance()/(1024*1024))+"MB");
-            System.out.println("local free: "+(getLocalFree()/(1024*1024))+"MB");
             if(getLocalFree()<getLocalBalance())
             {
-                System.out.println("Local space less than guaranteed. System exit.");
+                log.debug("Local space less than guaranteed. System exit.");
                 JOptionPane.showMessageDialog(frame,"Local disk space guaranteed has been  violated."
                         +"\nYou cannot use B4 DFS unless you clear local drive space","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
                 System.exit(1);
@@ -595,13 +537,13 @@ public class DFS3Config implements Serializable  {
 
             else if(getLocalFree()< 1.1*getLocalBalance())
             {
-                System.out.println("Local space warning 90%.");
-                JOptionPane.showMessageDialog(frame,"Local space guranteed is about to be encroached by other files."
+                log.debug("Local space warning 90%.");
+                JOptionPane.showMessageDialog(frame,"Local space guaranteed is about to be encroached by other files."
                         +"\nPlease free up local space","Brihaspati-4 DFS/UFS",JOptionPane.WARNING_MESSAGE);
 
             }
             else
-                System.out.println("Adequate local space available.");
+                log.debug("Adequate local space available.");
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3xmlHandler;
 import com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Mgr.DFS3Config;
+import com.ehelpy.brihaspati4.simulateGC.communication.Receiver;
+import org.apache.log4j.Logger;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamWriter;
@@ -10,6 +12,7 @@ import java.util.*;
 
 public class InodeWriter {
     static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
+    private static final Logger log = Logger.getLogger(Receiver.class.getName());
     public static void writeInode(String fileName, long fileSize, HashMap<String, String> index, boolean isDFS)
     {
         try {
@@ -90,12 +93,8 @@ public class InodeWriter {
             //end pubKey
             xMLStreamWriter.writeEndElement();
             //write segment key and values
-            //xMLStreamWriter.writeStartElement("SplitParts");
-            //int i =1;
             TreeMap<String, String> sortedHash = new TreeMap<>(index);
-
             for(Map.Entry<String, String> entry: sortedHash.entrySet()) {
-
                 // write the key
                 xMLStreamWriter.writeStartElement("splitPart");
                 // write the SplitPart No
@@ -107,7 +106,6 @@ public class InodeWriter {
                 xMLStreamWriter.writeEndElement();
             }
             //end splitpart table
-            //xMLStreamWriter.writeEndElement();
             //end inode
             xMLStreamWriter.writeEndElement();
             xMLStreamWriter.flush();
@@ -119,7 +117,6 @@ public class InodeWriter {
         System.out.println(e.getMessage());
     }
 
-        System.out.println("Inode file created successfully!");
+        log.debug("Inode file creatarion successful!");
     }
-
 }

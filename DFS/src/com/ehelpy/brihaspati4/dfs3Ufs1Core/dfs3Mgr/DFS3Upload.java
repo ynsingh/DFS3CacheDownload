@@ -1,6 +1,7 @@
 package com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Mgr;
 
 import com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.TLVParser;
+import com.ehelpy.brihaspati4.simulateGC.communication.Receiver;
 import com.ehelpy.brihaspati4.simulateGC.communication.Sender; // For demo/testing. to be replaced with communication manager post integration with b4mail client.
 import com.ehelpy.brihaspati4.simulateGC.encrypt.*;// For demo/testing. to be replaced with encryption/isec module post integration with b4mail client
 import static com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Util.file.*;
@@ -22,6 +23,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3xmlHandler.*;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 
@@ -40,6 +42,7 @@ public class DFS3Upload {
     static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
     //static Boolean fBit= Boolean.TRUE; to be integrated with indexing manager after integration for declaring file perpetual/non-perpetual
     static HashMap<String, String> index=new HashMap<>();
+    private static final Logger log = Logger.getLogger(Receiver.class.getName());
     /**
      *
      * @param isDFS variable indicating file is being uploaded to DFS or UFS.
@@ -75,7 +78,7 @@ public class DFS3Upload {
             long cloudAvlb = dfs3_ufs1.getCloudAvlb();
             if (cloudAvlb > fileSize || !isDFS) {
                 //System.out.println("File Size is: " + (fileSize / (1024 * 1024)) + "MB");
-                System.out.println("File can be uploaded");
+                log.debug("Available cloud space checked - File can be uploaded.");
                 //Read file using FileChannel and ByteBuffer
                 RandomAccessFile randomAccessFile = new RandomAccessFile(path, "r");
                 ByteBuffer encData;
@@ -93,7 +96,7 @@ public class DFS3Upload {
                     byte[] filePlusKey;
                     if(isDFS) {
                         filePlusKey = Encrypt.startEnc(plainData);
-                        System.out.println("file encrypted successfully!");
+                        log.debug("file encryption successful!");
                     }
                     //Append hash of file in front of the file data - to be used to verify file integrity post download.
                     else {
@@ -101,13 +104,12 @@ public class DFS3Upload {
                         byte [] hashByteArray=fileHash.getBytes();
                         byte[] signedHash = GenerateKeys.signHash(hashByteArray);
                         filePlusKey = concat(signedHash,plainData);
-                        System.out.println("Signed Hash length: "+signedHash.length);
-                        System.out.println("Signed Hash: "+fileHash);
+                        log.debug("Signed Hash for UFS apprended.");
                     }
                     encData = ByteBuffer.wrap(filePlusKey);
                     //send the file for segmentation
                     Segmentation.start(encData, path, isDFS, fileWithTimeStamp);
-                    System.out.println("file segmented successfully!");
+                    log.debug("file segmentation successful!");
                     //write inode for the file being uploaded
                     InodeWriter.writeInode(fileWithTimeStamp, fileSize, index, isDFS);
                 }
@@ -130,6 +132,7 @@ public class DFS3Upload {
                 else
                     inode = dfs3_ufs1.getUfsCache()+ fileWithTimeStamp + "_Inode.xml";
                 dispatch(inode, 0, isDFS);
+                log.debug("Inode uploaded.");
                 //Now uploading the updated root directory in the cloud
                 String rootDir;
                 if(isDFS)
@@ -146,13 +149,11 @@ public class DFS3Upload {
                     index(file, hashOfFile, false); // For demo/testing. To be integrated with Indexing manager.
                 }
                 dispatch(rootDir, 0, isDFS);
-                System.out.println("Updated root directory uploaded.");
-                System.out.println("Upload completed");
+                log.debug("Updated root directory uploaded.");
+                log.debug("Upload completed");
 
                 if(isDFS)
                     dfs3_ufs1.updateUpload(fileSize);
-                else
-                    System.out.println("File Successfully uploaded in UFS");
                 dialog.setVisible(false);
                 index.clear();
                 return true;
@@ -207,7 +208,7 @@ public class DFS3Upload {
         else
             hashedInode = Hash.hashpath(segmentName);
 
-        System.out.println("Hash of segment URL: "+hashedInode);
+        log.debug("Uploading:"+segmentName+",\tHash:"+hashedInode);
         //compute the hash of segment
         String hashOfSegment = hashgenerator(segmentData2);
         //Sign the hash

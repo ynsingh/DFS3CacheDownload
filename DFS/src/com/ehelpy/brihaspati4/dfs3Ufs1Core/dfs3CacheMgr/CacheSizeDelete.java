@@ -12,10 +12,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.ehelpy.brihaspati4.dfs3Ufs1Core.dfs3Mgr.DFS3Config;
+import com.ehelpy.brihaspati4.simulateGC.communication.Receiver;
+import org.apache.log4j.Logger;
 
 public class CacheSizeDelete {
 
     static DFS3Config dfs3_ufs1 = DFS3Config.getInstance();
+    private static final Logger log = Logger.getLogger(Receiver.class.getName());
+
     public static int sizedelete(Path dir, long cacheSize) throws IOException, InterruptedException {
 
         //System.out.println("folder: "+dir);
@@ -33,13 +37,12 @@ public class CacheSizeDelete {
 
     public static int deleteOldFiles(Path parentFolder, long limit) {
         List<Path> files = getSortedFilesByDateCreated(parentFolder, true);
-        System.out.println("Local cache authorized: "+(limit/(1024*1024))+"MB");
         long cacheOccupied = dfs3_ufs1.getCacheOccupied();
         int count=0;
 
         if(cacheOccupied <=limit*0.9){
 
-            System.out.println("Sufficient cache available: "+(dfs3_ufs1.getCacheOccupied()/(1024*1024))+"MB");
+            log.debug("Sufficient cache available");
             return 0;
         }
         else
@@ -58,7 +61,7 @@ public class CacheSizeDelete {
                 dfs3_ufs1.setCacheOccupied();
             }
         }
-        System.out.println("Now DFS cache size is: "+ dfs3_ufs1.getCacheOccupied());
+        log.debug("Now DFS cache size is: "+ dfs3_ufs1.getCacheOccupied());
         return count;
     }
 
